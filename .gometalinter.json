@@ -1,0 +1,5 @@
+{
+  "LineLength": 120,
+  "Sort": ["path", "line", "column", "linter"],
+  "Cyclo": 20
+}
