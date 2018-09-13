@@ -2,7 +2,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"log"
+	"net"
 )
 
 // CLI option names
@@ -15,7 +19,29 @@ var (
 )
 
 func startServer() error {
-	return nil
+	server, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *ip, *port))
+	if err != nil {
+		return err
+	}
+
+	var opts []grpc.ServerOption
+	if *tls {
+		if *certFile == "" {
+			return fmt.Errorf("Please specify a -cert-file")
+		}
+		if *keyFile == "" {
+			return fmt.Errorf("Please specify a -key-file")
+		}
+		creds, err := credentials.NewServerTLSFromFile(*certFile, *keyFile)
+		if err != nil {
+			return err
+		}
+		opts = []grpc.ServerOption{grpc.Creds(creds)}
+	}
+
+	grpcServer := grpc.NewServer(opts...)
+	// TODO: register grpc handler here
+	return grpcServer.Serve(server)
 }
 
 func main() {
