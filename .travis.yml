@@ -17,5 +17,5 @@ before_script:
 
 script:
   - diff -u <(echo -n) <(gofmt -d -s $(go list ./... | grep -v /vendor/))
-  - gometalinter ./...
+  - gometalinter ./... --vendor --dealdine 100s
   - go test ./...
