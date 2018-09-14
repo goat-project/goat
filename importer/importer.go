@@ -23,7 +23,7 @@ func NewAccountingServiceImpl(vms chan<- *goat_grpc.VmRecord, ips chan<- *goat_g
 
 func (asi *AccountingServiceImpl) ProcessVms(stream goat_grpc.AccountingService_ProcessVmsServer) error {
 	for {
-		_, err := stream.Recv()
+		data, err := stream.Recv()
 
 		if err == io.EOF {
 			return stream.SendAndClose(&goat_grpc.Confirmation{
@@ -36,13 +36,15 @@ func (asi *AccountingServiceImpl) ProcessVms(stream goat_grpc.AccountingService_
 			return err
 		}
 
-		// TODO process data
+		for _, vm := range data.Vms {
+			asi.vmConsumer <- vm
+		}
 	}
 }
 
 func (asi *AccountingServiceImpl) ProcessIps(stream goat_grpc.AccountingService_ProcessIpsServer) error {
 	for {
-		_, err := stream.Recv()
+		data, err := stream.Recv()
 
 		if err == io.EOF {
 			return stream.SendAndClose(&goat_grpc.Confirmation{
@@ -55,13 +57,15 @@ func (asi *AccountingServiceImpl) ProcessIps(stream goat_grpc.AccountingService_
 			return err
 		}
 
-		// TODO process data
+		for _, ip := range data.Ips {
+			asi.ipConsumer <- ip
+		}
 	}
 }
 
 func (asi *AccountingServiceImpl) ProcessStorage(stream goat_grpc.AccountingService_ProcessStorageServer) error {
 	for {
-		_, err := stream.Recv()
+		data, err := stream.Recv()
 
 		if err == io.EOF {
 			return stream.SendAndClose(&goat_grpc.Confirmation{
@@ -74,6 +78,8 @@ func (asi *AccountingServiceImpl) ProcessStorage(stream goat_grpc.AccountingServ
 			return err
 		}
 
-		// TODO process data
+		for _, storage := range data.Storages {
+			asi.storageConsumer <- storage
+		}
 	}
 }
