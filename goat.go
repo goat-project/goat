@@ -3,12 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/goat-project/goat-proto-go"
-	"github.com/goat-project/goat/importer"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
+	"github.com/goat-project/goat/service"
 	"log"
-	"net"
 )
 
 // CLI option names
@@ -20,13 +16,7 @@ var (
 	keyFile  = flag.String("key-file", "server.key", "server key file")
 )
 
-func startServer() error {
-	server, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *ip, *port))
-	if err != nil {
-		return err
-	}
-
-	var opts []grpc.ServerOption
+func checkArgs() error {
 	if *tls {
 		if *certFile == "" {
 			return fmt.Errorf("Please specify a -cert-file")
@@ -34,29 +24,20 @@ func startServer() error {
 		if *keyFile == "" {
 			return fmt.Errorf("Please specify a -key-file")
 		}
-		creds, err := credentials.NewServerTLSFromFile(*certFile, *keyFile)
-		if err != nil {
-			return err
-		}
-		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
-
-	grpcServer := grpc.NewServer(opts...)
-	vms := make(chan *goat_grpc.VmRecord, 32)
-	ips := make(chan *goat_grpc.IpRecord, 32)
-	storages := make(chan *goat_grpc.StorageRecord, 32)
-
-	importer.NewAccountingServiceImpl(vms, ips, storages)
-	return grpcServer.Serve(server)
+	return nil
 }
 
 func main() {
-	if flag.NFlag()+flag.NArg() == 0 {
-		flag.PrintDefaults()
+	flag.Parse()
+
+	err := checkArgs()
+	if err != nil {
+		log.Fatal(err)
 		return
 	}
-	flag.Parse()
-	err := startServer()
+
+	err = service.Serve(ip, port, tls, certFile, keyFile)
 	if err != nil {
 		log.Fatal(err)
 	}
