@@ -9,6 +9,12 @@ import (
 	"net"
 )
 
+const (
+	vmBufferSize      = 32
+	ipBufferSize      = 32
+	storageBufferSize = 32
+)
+
 // Serve starts grpc server on ip:port, optionally using tls. If *tls == true, then *certFile and *keyFile must be != null
 func Serve(ip *string, port *uint, tls *bool, certFile *string, keyFile *string) error {
 	server, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *ip, *port))
@@ -26,9 +32,9 @@ func Serve(ip *string, port *uint, tls *bool, certFile *string, keyFile *string)
 	}
 
 	grpcServer := grpc.NewServer(opts...)
-	vms := make(chan *goat_grpc.VmRecord, 32)
-	ips := make(chan *goat_grpc.IpRecord, 32)
-	storages := make(chan *goat_grpc.StorageRecord, 32)
+	vms := make(chan *goat_grpc.VmRecord, vmBufferSize)
+	ips := make(chan *goat_grpc.IpRecord, ipBufferSize)
+	storages := make(chan *goat_grpc.StorageRecord, storageBufferSize)
 
 	importer.NewAccountingServiceImpl(vms, ips, storages)
 
