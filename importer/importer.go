@@ -22,7 +22,7 @@ func NewAccountingServiceImpl(vms chan<- *goat_grpc.VmRecord, ips chan<- *goat_g
 }
 
 // ProcessVms is a GRPC call -- do not use!
-func (asi *AccountingServiceImpl) ProcessVms(stream goat_grpc.AccountingService_ProcessVmsServer) error {
+func (asi AccountingServiceImpl) ProcessVms(stream goat_grpc.AccountingService_ProcessVmsServer) error {
 	for {
 		data, err := stream.Recv()
 
@@ -44,7 +44,7 @@ func (asi *AccountingServiceImpl) ProcessVms(stream goat_grpc.AccountingService_
 }
 
 // ProcessIps is a GRPC call -- do not use!
-func (asi *AccountingServiceImpl) ProcessIps(stream goat_grpc.AccountingService_ProcessIpsServer) error {
+func (asi AccountingServiceImpl) ProcessIps(stream goat_grpc.AccountingService_ProcessIpsServer) error {
 	for {
 		data, err := stream.Recv()
 
@@ -66,7 +66,7 @@ func (asi *AccountingServiceImpl) ProcessIps(stream goat_grpc.AccountingService_
 }
 
 // ProcessStorage is a GRPC call -- do not use!
-func (asi *AccountingServiceImpl) ProcessStorage(stream goat_grpc.AccountingService_ProcessStorageServer) error {
+func (asi AccountingServiceImpl) ProcessStorage(stream goat_grpc.AccountingService_ProcessStorageServer) error {
 	for {
 		data, err := stream.Recv()
 
