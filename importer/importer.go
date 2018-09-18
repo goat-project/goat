@@ -2,6 +2,7 @@ package importer
 
 import (
 	"github.com/goat-project/goat-proto-go"
+	"github.com/golang/protobuf/ptypes/empty"
 	"io"
 )
 
@@ -27,10 +28,7 @@ func (asi AccountingServiceImpl) ProcessVms(stream goat_grpc.AccountingService_P
 		data, err := stream.Recv()
 
 		if err == io.EOF {
-			return stream.SendAndClose(&goat_grpc.Confirmation{
-				Accepted: true,
-				Msg:      "ok",
-			})
+			return stream.SendAndClose(&empty.Empty{})
 		}
 
 		if err != nil {
@@ -49,10 +47,7 @@ func (asi AccountingServiceImpl) ProcessIps(stream goat_grpc.AccountingService_P
 		data, err := stream.Recv()
 
 		if err == io.EOF {
-			return stream.SendAndClose(&goat_grpc.Confirmation{
-				Accepted: true,
-				Msg:      "ok",
-			})
+			return stream.SendAndClose(&empty.Empty{})
 		}
 
 		if err != nil {
@@ -71,10 +66,7 @@ func (asi AccountingServiceImpl) ProcessStorage(stream goat_grpc.AccountingServi
 		data, err := stream.Recv()
 
 		if err == io.EOF {
-			return stream.SendAndClose(&goat_grpc.Confirmation{
-				Accepted: true,
-				Msg:      "ok",
-			})
+			return stream.SendAndClose(&empty.Empty{})
 		}
 
 		if err != nil {
