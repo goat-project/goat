@@ -3,11 +3,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:3ea8fe339a3594dcfc994d5ba8cd5653b55974af40ee856fb3386c690c0942ba"
+  digest = "1:9e1960a3af770966349b91d00e58aae3725646a821b52a47702e601532d1de57"
   name = "github.com/goat-project/goat-proto-go"
   packages = ["."]
   pruneopts = ""
-  revision = "e9ef8c54c6619d608b6c897f3e6e9c1a25868784"
+  revision = "268c1c161c790c20484a5367564c3ddfa3b572f4"
 
 [[projects]]
   digest = "1:3dd078fda7500c341bc26cfbc6c6a34614f295a2457149fc1045cab767cbcf18"
@@ -74,11 +74,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ed9ba02e3e3ad654d19e5f2207797fb28077c9f718caad4a6216dd66f4535e43"
+  digest = "1:b5eb34042d1d82e055da36ad49c74b362be8d857a140239cdfc7ddca1f41019f"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = ""
-  revision = "5a2fd4cab2d6d4a18e70c34937662526cd0c4bd1"
+  revision = "4b56f30a1fd96a133a036b62cdd2a249883dd89b"
 
 [[projects]]
   digest = "1:15656947b87a6a240e61dcfae9e71a55a8d5677f240d12ab48f02cdbabf1e309"
@@ -124,5 +124,5 @@
     "google.golang.org/grpc",
     "google.golang.org/grpc/credentials",
   ]
-  solver-name = ""
-  solver-version = 0
+  solver-name = "gps-cdcl"
+  solver-version = 1

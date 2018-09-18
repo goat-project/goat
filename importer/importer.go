@@ -1,6 +1,7 @@
 package importer
 
 import (
+	"errors"
 	"github.com/goat-project/goat-proto-go"
 	"github.com/golang/protobuf/ptypes/empty"
 	"io"
@@ -22,8 +23,18 @@ func NewAccountingServiceImpl(vms chan<- *goat_grpc.VmRecord, ips chan<- *goat_g
 	}
 }
 
-// ProcessVms is a GRPC call -- do not use!
-func (asi AccountingServiceImpl) ProcessVms(stream goat_grpc.AccountingService_ProcessVmsServer) error {
+// Process is a GRPC call -- do not use!
+func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_ProcessServer) error {
+	id, err := stream.Recv()
+	if err != nil {
+		return err
+	}
+
+	clientID := id.GetIdentifier()
+	if clientID == "" {
+		return errors.New("First message in the stream must be client identifier")
+	}
+
 	for {
 		data, err := stream.Recv()
 
@@ -35,46 +46,24 @@ func (asi AccountingServiceImpl) ProcessVms(stream goat_grpc.AccountingService_P
 			return err
 		}
 
-		for _, vm := range data.Vms {
+		vm := data.GetVm()
+		ip := data.GetIp()
+		storage := data.GetStorage()
+
+		if vm != nil {
 			asi.vmConsumer <- vm
 		}
-	}
-}
 
-// ProcessIps is a GRPC call -- do not use!
-func (asi AccountingServiceImpl) ProcessIps(stream goat_grpc.AccountingService_ProcessIpsServer) error {
-	for {
-		data, err := stream.Recv()
-
-		if err == io.EOF {
-			return stream.SendAndClose(&empty.Empty{})
-		}
-
-		if err != nil {
-			return err
-		}
-
-		for _, ip := range data.Ips {
+		if ip != nil {
 			asi.ipConsumer <- ip
 		}
-	}
-}
 
-// ProcessStorage is a GRPC call -- do not use!
-func (asi AccountingServiceImpl) ProcessStorage(stream goat_grpc.AccountingService_ProcessStorageServer) error {
-	for {
-		data, err := stream.Recv()
-
-		if err == io.EOF {
-			return stream.SendAndClose(&empty.Empty{})
-		}
-
-		if err != nil {
-			return err
-		}
-
-		for _, storage := range data.Storages {
+		if storage != nil {
 			asi.storageConsumer <- storage
+		}
+
+		if data.GetIdentifier() != "" {
+			return errors.New("Client identifier found as a non-first message of the stream")
 		}
 	}
 }
