@@ -1,5 +1,6 @@
 [[constraint]]
 name = "github.com/goat-project/goat-proto-go"
+branch = "master"
 
 [[constraint]]
 name = "google.golang.org/grpc"
