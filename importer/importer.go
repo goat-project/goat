@@ -7,6 +7,15 @@ import (
 	"io"
 )
 
+var (
+	// ErrFirstClientIdentifier indicates that the first message of the stream is not client identifier
+	ErrFirstClientIdentifier = errors.New("First message in the stream must be client identifier")
+	// ErrNonFirstClientIdentifier indicates that client identifier was found as a non-first message of the stream
+	ErrNonFirstClientIdentifier = errors.New("Client identifier found as a non-first message of the stream")
+	// ErrUnknownMessageType indicates that an unknown type has arrived as part of data stream
+	ErrUnknownMessageType = errors.New("Unhandled message type received")
+)
+
 // AccountingServiceImpl implements goat_grpc.AccountingService server
 type AccountingServiceImpl struct {
 	vmConsumer      chan<- *goat_grpc.VmRecord
@@ -30,9 +39,11 @@ func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_Proc
 		return err
 	}
 
-	clientID := id.GetIdentifier()
-	if clientID == "" {
-		return errors.New("First message in the stream must be client identifier")
+	switch id.Data.(type) {
+	case *goat_grpc.AccountingData_Identifier:
+		// this is OK
+	default:
+		return ErrFirstClientIdentifier
 	}
 
 	for {
@@ -46,24 +57,17 @@ func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_Proc
 			return err
 		}
 
-		vm := data.GetVm()
-		ip := data.GetIp()
-		storage := data.GetStorage()
-
-		if vm != nil {
-			asi.vmConsumer <- vm
-		}
-
-		if ip != nil {
-			asi.ipConsumer <- ip
-		}
-
-		if storage != nil {
-			asi.storageConsumer <- storage
-		}
-
-		if data.GetIdentifier() != "" {
-			return errors.New("Client identifier found as a non-first message of the stream")
+		switch data.Data.(type) {
+		case *goat_grpc.AccountingData_Identifier:
+			return ErrNonFirstClientIdentifier
+		case *goat_grpc.AccountingData_Vm:
+			asi.vmConsumer <- data.GetVm()
+		case *goat_grpc.AccountingData_Ip:
+			asi.ipConsumer <- data.GetIp()
+		case *goat_grpc.AccountingData_Storage:
+			asi.storageConsumer <- data.GetStorage()
+		default:
+			return ErrUnknownMessageType
 		}
 	}
 }
