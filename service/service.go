@@ -32,9 +32,9 @@ func Serve(ip *string, port *uint, tls *bool, certFile *string, keyFile *string)
 	}
 
 	grpcServer := grpc.NewServer(opts...)
-	vms := make(chan *goat_grpc.VmRecord, vmBufferSize)
-	ips := make(chan *goat_grpc.IpRecord, ipBufferSize)
-	storages := make(chan *goat_grpc.StorageRecord, storageBufferSize)
+	vms := make(chan goat_grpc.VmRecord, vmBufferSize)
+	ips := make(chan goat_grpc.IpRecord, ipBufferSize)
+	storages := make(chan goat_grpc.StorageRecord, storageBufferSize)
 
 	goat_grpc.RegisterAccountingServiceServer(grpcServer, importer.NewAccountingServiceImpl(vms, ips, storages))
 
