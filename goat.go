@@ -48,7 +48,7 @@ func main() {
 		return
 	}
 
-	err = service.Serve(ip, port, tls, certFile, keyFile)
+	err = service.Serve(ip, port, tls, certFile, keyFile, outDir, templatesDir)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -3,20 +3,15 @@ package service
 import (
 	"fmt"
 	"github.com/goat-project/goat-proto-go"
+	"github.com/goat-project/goat/consumer"
 	"github.com/goat-project/goat/importer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"net"
 )
 
-const (
-	vmBufferSize      = 32
-	ipBufferSize      = 32
-	storageBufferSize = 32
-)
-
 // Serve starts grpc server on ip:port, optionally using tls. If *tls == true, then *certFile and *keyFile must be != null
-func Serve(ip *string, port *uint, tls *bool, certFile *string, keyFile *string) error {
+func Serve(ip *string, port *uint, tls *bool, certFile *string, keyFile *string, outDir *string, templatesDir *string) error {
 	server, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *ip, *port))
 	if err != nil {
 		return err
@@ -32,11 +27,9 @@ func Serve(ip *string, port *uint, tls *bool, certFile *string, keyFile *string)
 	}
 
 	grpcServer := grpc.NewServer(opts...)
-	vms := make(chan goat_grpc.VmRecord, vmBufferSize)
-	ips := make(chan goat_grpc.IpRecord, ipBufferSize)
-	storages := make(chan goat_grpc.StorageRecord, storageBufferSize)
 
-	goat_grpc.RegisterAccountingServiceServer(grpcServer, importer.NewAccountingServiceImpl(vms, ips, storages))
+	wr := consumer.NewWriter(*outDir, *templatesDir)
+	goat_grpc.RegisterAccountingServiceServer(grpcServer, importer.NewAccountingServiceImpl(wr, wr, wr))
 
 	return grpcServer.Serve(server)
 }

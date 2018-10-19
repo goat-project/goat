@@ -1,8 +1,10 @@
 package importer
 
 import (
+	"context"
 	"errors"
 	"github.com/goat-project/goat-proto-go"
+	"github.com/goat-project/goat/consumer"
 	"github.com/golang/protobuf/ptypes/empty"
 	"io"
 )
@@ -18,17 +20,17 @@ var (
 
 // AccountingServiceImpl implements goat_grpc.AccountingService server
 type AccountingServiceImpl struct {
-	vmConsumer      chan<- goat_grpc.VmRecord
-	ipConsumer      chan<- goat_grpc.IpRecord
-	storageConsumer chan<- goat_grpc.StorageRecord
+	vmConsumer      consumer.VMConsumer
+	ipConsumer      consumer.IPConsumer
+	storageConsumer consumer.StorageConsumer
 }
 
 // NewAccountingServiceImpl creates a grpc server that sends received data to given channels and uses clientIdentifierValidator to validate client identifiers
-func NewAccountingServiceImpl(vms chan<- goat_grpc.VmRecord, ips chan<- goat_grpc.IpRecord, storages chan<- goat_grpc.StorageRecord) AccountingServiceImpl {
+func NewAccountingServiceImpl(vmConsumer consumer.VMConsumer, ipConsumer consumer.IPConsumer, storageConsumer consumer.StorageConsumer) AccountingServiceImpl {
 	return AccountingServiceImpl{
-		vmConsumer:      vms,
-		ipConsumer:      ips,
-		storageConsumer: storages,
+		vmConsumer:      vmConsumer,
+		ipConsumer:      ipConsumer,
+		storageConsumer: storageConsumer,
 	}
 }
 
@@ -48,11 +50,26 @@ func (asi AccountingServiceImpl) receiveIdentifier(stream goat_grpc.AccountingSe
 
 // Process is a GRPC call -- do not use!
 func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_ProcessServer) error {
-	// TODO: use the first return value!
-	_, err := asi.receiveIdentifier(stream)
+	id, err := asi.receiveIdentifier(stream)
 	if err != nil {
 		return err
 	}
+
+	consumerContext := context.TODO()
+
+	// prepare channels for individual data types
+	vms := make(chan goat_grpc.VmRecord)
+	ips := make(chan goat_grpc.IpRecord)
+	storages := make(chan goat_grpc.StorageRecord)
+
+	// close all the channels whenever this method returns
+	defer close(vms)
+	defer close(ips)
+	defer close(storages)
+
+	asi.vmConsumer.ConsumeVms(consumerContext, id, vms)
+	asi.ipConsumer.ConsumeIps(consumerContext, id, ips)
+	asi.storageConsumer.ConsumeStorages(consumerContext, id, storages)
 
 	for {
 		data, err := stream.Recv()
@@ -69,11 +86,11 @@ func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_Proc
 		case *goat_grpc.AccountingData_Identifier:
 			return ErrNonFirstClientIdentifier
 		case *goat_grpc.AccountingData_Vm:
-			asi.vmConsumer <- *data.GetVm()
+			vms <- *data.GetVm()
 		case *goat_grpc.AccountingData_Ip:
-			asi.ipConsumer <- *data.GetIp()
+			ips <- *data.GetIp()
 		case *goat_grpc.AccountingData_Storage:
-			asi.storageConsumer <- *data.GetStorage()
+			storages <- *data.GetStorage()
 		default:
 			return ErrUnknownMessageType
 		}
