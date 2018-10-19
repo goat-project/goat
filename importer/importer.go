@@ -32,18 +32,26 @@ func NewAccountingServiceImpl(vms chan<- goat_grpc.VmRecord, ips chan<- goat_grp
 	}
 }
 
-// Process is a GRPC call -- do not use!
-func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_ProcessServer) error {
+func (asi AccountingServiceImpl) receiveIdentifier(stream goat_grpc.AccountingService_ProcessServer) (string, error) {
 	id, err := stream.Recv()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	switch id.Data.(type) {
 	case *goat_grpc.AccountingData_Identifier:
-		// this is OK
+		return id.GetIdentifier(), nil
 	default:
-		return ErrFirstClientIdentifier
+		return "", ErrFirstClientIdentifier
+	}
+}
+
+// Process is a GRPC call -- do not use!
+func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_ProcessServer) error {
+	// TODO: use the first return value!
+	_, err := asi.receiveIdentifier(stream)
+	if err != nil {
+		return err
 	}
 
 	for {
