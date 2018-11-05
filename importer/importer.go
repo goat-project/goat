@@ -55,26 +55,41 @@ func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_Proc
 		return err
 	}
 
-	consumerContext := context.TODO()
+	consumerContext, cancelConsumers := context.WithCancel(context.Background())
+	defer cancelConsumers()
 
 	// prepare channels for individual data types
 	vms := make(chan goat_grpc.VmRecord)
 	ips := make(chan goat_grpc.IpRecord)
 	storages := make(chan goat_grpc.StorageRecord)
 
-	// close all the channels whenever this method returns
-	defer close(vms)
-	defer close(ips)
-	defer close(storages)
+	done1, err := asi.vmConsumer.ConsumeVms(consumerContext, id, vms)
+	if err != nil {
+		return err
+	}
 
-	asi.vmConsumer.ConsumeVms(consumerContext, id, vms)
-	asi.ipConsumer.ConsumeIps(consumerContext, id, ips)
-	asi.storageConsumer.ConsumeStorages(consumerContext, id, storages)
+	done2, err := asi.ipConsumer.ConsumeIps(consumerContext, id, ips)
+	if err != nil {
+		return err
+	}
+
+	done3, err := asi.storageConsumer.ConsumeStorages(consumerContext, id, storages)
+	if err != nil {
+		return err
+	}
+
+	done := consumer.AndDone(done1, done2, done3)
 
 	for {
 		data, err := stream.Recv()
 
 		if err == io.EOF {
+			close(vms)
+			close(ips)
+			close(storages)
+
+			// wait until consumers are done
+			<-done
 			return stream.SendAndClose(&empty.Empty{})
 		}
 
