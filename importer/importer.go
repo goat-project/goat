@@ -63,22 +63,20 @@ func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_Proc
 	ips := make(chan goat_grpc.IpRecord)
 	storages := make(chan goat_grpc.StorageRecord)
 
-	done1, err := asi.vmConsumer.ConsumeVms(consumerContext, id, vms)
+	results1, err := asi.vmConsumer.ConsumeVms(consumerContext, id, vms)
 	if err != nil {
 		return err
 	}
 
-	done2, err := asi.ipConsumer.ConsumeIps(consumerContext, id, ips)
+	results2, err := asi.ipConsumer.ConsumeIps(consumerContext, id, ips)
 	if err != nil {
 		return err
 	}
 
-	done3, err := asi.storageConsumer.ConsumeStorages(consumerContext, id, storages)
+	results3, err := asi.storageConsumer.ConsumeStorages(consumerContext, id, storages)
 	if err != nil {
 		return err
 	}
-
-	done := consumer.AndDone(done1, done2, done3)
 
 	for {
 		data, err := stream.Recv()
@@ -88,8 +86,9 @@ func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_Proc
 			close(ips)
 			close(storages)
 
-			// wait until consumers are done
-			<-done
+			consumer.CheckResults(func(_ error) {
+				// TODO handle errors here
+			}, results1, results2, results3)
 			return stream.SendAndClose(&empty.Empty{})
 		}
 
