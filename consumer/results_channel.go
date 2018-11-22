@@ -42,6 +42,14 @@ func NewOkResult() Result {
 	}
 }
 
+// NewResultFromError creates an unsuccessful result in case specified error is not nil. If the error is nil, it creates a successful result
+func NewResultFromError(e error) Result {
+	if e != nil {
+		return NewErrorResult(e)
+	}
+	return NewOkResult()
+}
+
 // CheckResults reads all results from given results channels. When an error is encountered, onError is called with the underlying error
 func CheckResults(onError ErrHandler, chans ...ResultsChannel) {
 	var wg sync.WaitGroup
