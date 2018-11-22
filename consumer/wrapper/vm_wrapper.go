@@ -2,6 +2,9 @@ package wrapper
 
 import (
 	"github.com/goat-project/goat-proto-go"
+	duration "github.com/golang/protobuf/ptypes/duration"
+	timestamp "github.com/golang/protobuf/ptypes/timestamp"
+	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 )
 
 type vmWrapper struct {
@@ -9,7 +12,32 @@ type vmWrapper struct {
 }
 
 type vmTemplate struct {
-	// TODO
+	VMUUID              string
+	SiteName            string
+	CloudComputeService *string
+	MachineName         string
+	LocalUserID         *string
+	LocalGroupID        *string
+	GlobalUserName      *string
+	Fqan                *string
+	Status              *string
+	StartTime           *string
+	EndTime             *string
+	SuspendDuration     *string
+	WallDuration        *string
+	CPUDuration         *string
+	CPUCount            uint32
+	NetworkType         *string
+	NetworkInbound      *uint64
+	NetworkOutbound     *uint64
+	PublicIPCount       *uint64
+	Memory              *uint64
+	Disk                *uint64
+	BenchmarkType       *string
+	Benchmark           *float32
+	StorageRecordID     *string
+	ImageID             *string
+	CloudType           *string
 }
 
 // NewVMWrapper wraps given vm in a RecordWrapper
@@ -31,7 +59,84 @@ func (vw vmWrapper) AsXML() interface{} {
 	return vw.vm
 }
 
+func s(wr *wrappers.StringValue) *string {
+	if wr == nil {
+		return nil
+	}
+
+	result := new(string)
+	*result = wr.GetValue()
+
+	return result
+}
+
+func u64(wr *wrappers.UInt64Value) *uint64 {
+	if wr == nil {
+		return nil
+	}
+	result := new(uint64)
+	*result = wr.GetValue()
+
+	return result
+}
+
+func f32(wr *wrappers.FloatValue) *float32 {
+	if wr == nil {
+		return nil
+	}
+	result := new(float32)
+	*result = wr.GetValue()
+
+	return result
+}
+
+func t(wr *timestamp.Timestamp) *string {
+	if wr == nil {
+		return nil
+	}
+
+	result := new(string)
+	*result = wr.String()
+	return result
+}
+
+func d(wr *duration.Duration) *string {
+	if wr == nil {
+		return nil
+	}
+
+	result := new(string)
+	*result = wr.String()
+	return result
+}
+
 func (vw vmWrapper) AsTemplate() interface{} {
-	// TODO
-	return vmTemplate{}
+	return vmTemplate{
+		VMUUID:              vw.vm.GetVmUuid(),
+		SiteName:            vw.vm.GetSiteName(),
+		CloudComputeService: s(vw.vm.GetCloudComputeService()),
+		MachineName:         vw.vm.GetMachineName(),
+		LocalUserID:         s(vw.vm.GetLocalUserId()),
+		LocalGroupID:        s(vw.vm.GetLocalGroupId()),
+		GlobalUserName:      s(vw.vm.GetGlobalUserName()),
+		Fqan:                s(vw.vm.GetFqan()),
+		Status:              s(vw.vm.GetStatus()),
+		StartTime:           t(vw.vm.GetStartTime()),
+		EndTime:             t(vw.vm.GetEndTime()),
+		SuspendDuration:     d(vw.vm.GetSuspendDuration()),
+		WallDuration:        d(vw.vm.GetWallDuration()),
+		CPUDuration:         d(vw.vm.GetCpuDuration()),
+		CPUCount:            vw.vm.GetCpuCount(),
+		NetworkType:         s(vw.vm.GetNetworkType()),
+		NetworkInbound:      u64(vw.vm.GetNetworkInbound()),
+		NetworkOutbound:     u64(vw.vm.GetNetworkOutbound()),
+		PublicIPCount:       u64(vw.vm.GetPublicIpCount()),
+		Memory:              u64(vw.vm.GetMemory()),
+		Disk:                u64(vw.vm.GetDisk()),
+		BenchmarkType:       s(vw.vm.GetBenchmarkType()),
+		Benchmark:           f32(vw.vm.GetBenchmark()),
+		StorageRecordID:     s(vw.vm.GetStorageRecordId()),
+		ImageID:             s(vw.vm.GetImageId()),
+		CloudType:           s(vw.vm.GetCloudType()),
+	}
 }
