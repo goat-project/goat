@@ -1,9 +1,8 @@
 package wrapper
 
 import (
+	"fmt"
 	"github.com/goat-project/goat-proto-go"
-	duration "github.com/golang/protobuf/ptypes/duration"
-	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 )
 
@@ -59,17 +58,6 @@ func (vw vmWrapper) AsXML() interface{} {
 	return vw.vm
 }
 
-func s(wr *wrappers.StringValue) *string {
-	if wr == nil {
-		return nil
-	}
-
-	result := new(string)
-	*result = wr.GetValue()
-
-	return result
-}
-
 func u64(wr *wrappers.UInt64Value) *uint64 {
 	if wr == nil {
 		return nil
@@ -90,17 +78,7 @@ func f32(wr *wrappers.FloatValue) *float32 {
 	return result
 }
 
-func t(wr *timestamp.Timestamp) *string {
-	if wr == nil {
-		return nil
-	}
-
-	result := new(string)
-	*result = wr.String()
-	return result
-}
-
-func d(wr *duration.Duration) *string {
+func s(wr fmt.Stringer) *string {
 	if wr == nil {
 		return nil
 	}
@@ -121,11 +99,11 @@ func (vw vmWrapper) AsTemplate() interface{} {
 		GlobalUserName:      s(vw.vm.GetGlobalUserName()),
 		Fqan:                s(vw.vm.GetFqan()),
 		Status:              s(vw.vm.GetStatus()),
-		StartTime:           t(vw.vm.GetStartTime()),
-		EndTime:             t(vw.vm.GetEndTime()),
-		SuspendDuration:     d(vw.vm.GetSuspendDuration()),
-		WallDuration:        d(vw.vm.GetWallDuration()),
-		CPUDuration:         d(vw.vm.GetCpuDuration()),
+		StartTime:           s(vw.vm.GetStartTime()),
+		EndTime:             s(vw.vm.GetEndTime()),
+		SuspendDuration:     s(vw.vm.GetSuspendDuration()),
+		WallDuration:        s(vw.vm.GetWallDuration()),
+		CPUDuration:         s(vw.vm.GetCpuDuration()),
 		CPUCount:            vw.vm.GetCpuCount(),
 		NetworkType:         s(vw.vm.GetNetworkType()),
 		NetworkInbound:      u64(vw.vm.GetNetworkInbound()),
