@@ -101,9 +101,9 @@ func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_Proc
 		case *goat_grpc.AccountingData_Identifier:
 			return ErrNonFirstClientIdentifier
 		case *goat_grpc.AccountingData_Vm:
-			vms <- wrapper.WrapVm(*data.GetVm())
+			vms <- wrapper.WrapVM(*data.GetVm())
 		case *goat_grpc.AccountingData_Ip:
-			ips <- wrapper.WrapIp(*data.GetIp())
+			ips <- wrapper.WrapIP(*data.GetIp())
 		case *goat_grpc.AccountingData_Storage:
 			storages <- wrapper.WrapStorage(*data.GetStorage())
 		default:

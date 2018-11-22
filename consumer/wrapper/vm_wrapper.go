@@ -12,7 +12,8 @@ type vmTemplate struct {
 	// TODO
 }
 
-func NewVmWrapper(vm goat_grpc.VmRecord) RecordWrapper {
+// NewVMWrapper wraps given vm in a RecordWrapper
+func NewVMWrapper(vm goat_grpc.VmRecord) RecordWrapper {
 	return vmWrapper{
 		vm: vm,
 	}

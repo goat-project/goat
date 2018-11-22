@@ -12,7 +12,8 @@ type ipJSON struct {
 	// TODO
 }
 
-func NewIpWrapper(ip goat_grpc.IpRecord) RecordWrapper {
+// NewIPWrapper wraps given ip in a RecordWrapper
+func NewIPWrapper(ip goat_grpc.IpRecord) RecordWrapper {
 	return ipWrapper{
 		ip: ip,
 	}

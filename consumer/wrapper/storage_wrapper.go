@@ -11,6 +11,7 @@ type storageWrapper struct {
 type storageXML struct {
 }
 
+// NewStorageWrapper wraps given storage in a RecordWrapper
 func NewStorageWrapper(st goat_grpc.StorageRecord) RecordWrapper {
 	return storageWrapper{
 		st: st,

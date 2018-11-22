@@ -19,14 +19,17 @@ type RecordWrapper interface {
 	AsTemplate() interface{}
 }
 
-func WrapVm(vm goat_grpc.VmRecord) RecordWrapper {
-	return NewVmWrapper(vm)
+// WrapVM wraps given vm in a RecordWrapper
+func WrapVM(vm goat_grpc.VmRecord) RecordWrapper {
+	return NewVMWrapper(vm)
 }
 
-func WrapIp(ip goat_grpc.IpRecord) RecordWrapper {
-	return NewIpWrapper(ip)
+// WrapIP wraps given ip in a RecordWrapper
+func WrapIP(ip goat_grpc.IpRecord) RecordWrapper {
+	return NewIPWrapper(ip)
 }
 
+// WrapStorage wraps given storage in a RecordWrapper
 func WrapStorage(st goat_grpc.StorageRecord) RecordWrapper {
 	return NewStorageWrapper(st)
 }
