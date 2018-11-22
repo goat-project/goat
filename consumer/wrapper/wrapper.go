@@ -15,7 +15,7 @@ type RecordWrapper interface {
 	// AsXml returns an annotated structure that can be serialized to XML
 	AsXML() interface{}
 
-	// AsAPEL returns a structure that can be serialized via template
+	// AsTemplate returns a structure that can be serialized via template
 	AsTemplate() interface{}
 }
 
