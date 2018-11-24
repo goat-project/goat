@@ -67,7 +67,8 @@ func (wc WriterConsumer) write(id string, rw wrapper.RecordWrapper) error {
 	return err
 }
 
-func (wc WriterConsumer) consume(ctx context.Context, id string, records <-chan wrapper.RecordWrapper) (ResultsChannel, error) {
+// Consume transforms records into text and writes them to a subdirectory of dir specified by WriterConsumer's dir field. Each record is written into its own file.
+func (wc WriterConsumer) Consume(ctx context.Context, id string, records <-chan wrapper.RecordWrapper) (ResultsChannel, error) {
 	res := make(chan Result)
 
 	if err := ensureDirectoryExists(path.Join(wc.dir, id)); err != nil {
@@ -93,19 +94,4 @@ func (wc WriterConsumer) consume(ctx context.Context, id string, records <-chan 
 	}()
 
 	return res, nil
-}
-
-// ConsumeIps transforms IpRecord-s into text and writes them to a subdirectory of dir specified by WriterConsumer's dir field. Each IpRecord is written into its own file.
-func (wc WriterConsumer) ConsumeIps(ctx context.Context, id string, ips <-chan wrapper.RecordWrapper) (ResultsChannel, error) {
-	return wc.consume(ctx, id, ips)
-}
-
-// ConsumeVms transforms VmRecord-s into text and writes them to a subdirectory of dir specified by WriterConsumer's dir field. Each VmRecord is written into its own file.
-func (wc WriterConsumer) ConsumeVms(ctx context.Context, id string, vms <-chan wrapper.RecordWrapper) (ResultsChannel, error) {
-	return wc.consume(ctx, id, vms)
-}
-
-// ConsumeStorages transforms StorageRecord-s into text and writes them to a subdirectory of dir specified by WriterConsumer's dir field. Each StorageRecord is written into its own file.
-func (wc WriterConsumer) ConsumeStorages(ctx context.Context, id string, sts <-chan wrapper.RecordWrapper) (ResultsChannel, error) {
-	return wc.consume(ctx, id, sts)
 }
