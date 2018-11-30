@@ -21,13 +21,13 @@ var (
 
 // AccountingServiceImpl implements goat_grpc.AccountingService server
 type AccountingServiceImpl struct {
-	vmConsumer      consumer.VMConsumer
-	ipConsumer      consumer.IPConsumer
-	storageConsumer consumer.StorageConsumer
+	vmConsumer      consumer.Consumer
+	ipConsumer      consumer.Consumer
+	storageConsumer consumer.Consumer
 }
 
 // NewAccountingServiceImpl creates a grpc server that sends received data to given channels and uses clientIdentifierValidator to validate client identifiers
-func NewAccountingServiceImpl(vmConsumer consumer.VMConsumer, ipConsumer consumer.IPConsumer, storageConsumer consumer.StorageConsumer) AccountingServiceImpl {
+func NewAccountingServiceImpl(vmConsumer consumer.Consumer, ipConsumer consumer.Consumer, storageConsumer consumer.Consumer) AccountingServiceImpl {
 	return AccountingServiceImpl{
 		vmConsumer:      vmConsumer,
 		ipConsumer:      ipConsumer,
@@ -64,17 +64,17 @@ func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_Proc
 	ips := make(chan wrapper.RecordWrapper)
 	storages := make(chan wrapper.RecordWrapper)
 
-	results1, err := asi.vmConsumer.ConsumeVms(consumerContext, id, vms)
+	results1, err := asi.vmConsumer.Consume(consumerContext, id, vms)
 	if err != nil {
 		return err
 	}
 
-	results2, err := asi.ipConsumer.ConsumeIps(consumerContext, id, ips)
+	results2, err := asi.ipConsumer.Consume(consumerContext, id, ips)
 	if err != nil {
 		return err
 	}
 
-	results3, err := asi.storageConsumer.ConsumeStorages(consumerContext, id, storages)
+	results3, err := asi.storageConsumer.Consume(consumerContext, id, storages)
 	if err != nil {
 		return err
 	}
