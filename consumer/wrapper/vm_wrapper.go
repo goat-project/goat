@@ -50,12 +50,12 @@ func (vw vmWrapper) Filename() string {
 	return vw.vm.GetVmUuid()
 }
 
-func (vw vmWrapper) AsJSON() interface{} {
-	return vw.vm
+func (vw vmWrapper) AsJSON() (interface{}, error) {
+	return nil, ErrNotImplemented
 }
 
-func (vw vmWrapper) AsXML() interface{} {
-	return vw.vm
+func (vw vmWrapper) AsXML() (interface{}, error) {
+	return nil, ErrNotImplemented
 }
 
 func u64(wr *wrappers.UInt64Value) *uint64 {
@@ -88,7 +88,7 @@ func s(wr fmt.Stringer) *string {
 	return result
 }
 
-func (vw vmWrapper) AsTemplate() interface{} {
+func (vw vmWrapper) AsTemplate() (interface{}, error) {
 	return vmTemplate{
 		VMUUID:              vw.vm.GetVmUuid(),
 		SiteName:            vw.vm.GetSiteName(),
@@ -102,8 +102,8 @@ func (vw vmWrapper) AsTemplate() interface{} {
 		StartTime:           s(vw.vm.GetStartTime()),
 		EndTime:             s(vw.vm.GetEndTime()),
 		SuspendDuration:     s(vw.vm.GetSuspendDuration()),
-		WallDuration:        s(vw.vm.GetWallDuration()),
 		CPUDuration:         s(vw.vm.GetCpuDuration()),
+		WallDuration:        s(vw.vm.GetWallDuration()),
 		CPUCount:            vw.vm.GetCpuCount(),
 		NetworkType:         s(vw.vm.GetNetworkType()),
 		NetworkInbound:      u64(vw.vm.GetNetworkInbound()),
@@ -116,5 +116,5 @@ func (vw vmWrapper) AsTemplate() interface{} {
 		StorageRecordID:     s(vw.vm.GetStorageRecordId()),
 		ImageID:             s(vw.vm.GetImageId()),
 		CloudType:           s(vw.vm.GetCloudType()),
-	}
+	}, nil
 }

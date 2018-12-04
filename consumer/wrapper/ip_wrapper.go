@@ -25,15 +25,15 @@ func (iw ipWrapper) Filename() string {
 	return ""
 }
 
-func (iw ipWrapper) AsXML() interface{} {
-	return iw.ip
+func (iw ipWrapper) AsXML() (interface{}, error) {
+	return nil, ErrNotImplemented
 }
 
-func (iw ipWrapper) AsJSON() interface{} {
+func (iw ipWrapper) AsJSON() (interface{}, error) {
 	// TODO
-	return ipJSON{}
+	return ipJSON{}, nil
 }
 
-func (iw ipWrapper) AsTemplate() interface{} {
-	return iw.ip
+func (iw ipWrapper) AsTemplate() (interface{}, error) {
+	return nil, ErrNotImplemented
 }

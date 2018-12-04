@@ -22,16 +22,16 @@ func (sw storageWrapper) Filename() string {
 	return sw.st.GetRecordID()
 }
 
-func (sw storageWrapper) AsXML() interface{} {
+func (sw storageWrapper) AsXML() (interface{}, error) {
 	// TODO
-	return storageXML{}
+	return storageXML{}, nil
 }
 
-func (sw storageWrapper) AsJSON() interface{} {
-	return sw.st
+func (sw storageWrapper) AsJSON() (interface{}, error) {
+	return nil, ErrNotImplemented
 }
 
-func (sw storageWrapper) AsTemplate() interface{} {
-	return sw.st
+func (sw storageWrapper) AsTemplate() (interface{}, error) {
+	return nil, ErrNotImplemented
 
 }
