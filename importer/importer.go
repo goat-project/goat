@@ -6,7 +6,6 @@ import (
 	"github.com/goat-project/goat-proto-go"
 	"github.com/goat-project/goat/consumer"
 	"github.com/goat-project/goat/consumer/wrapper"
-	"github.com/golang/protobuf/ptypes/empty"
 	"io"
 )
 
@@ -35,79 +34,58 @@ func NewAccountingServiceImpl(vmConsumer consumer.Consumer, ipConsumer consumer.
 	}
 }
 
-func (asi AccountingServiceImpl) receiveIdentifier(stream goat_grpc.AccountingService_ProcessServer) (string, error) {
-	id, err := stream.Recv()
-	if err != nil {
-		return "", err
-	}
+func (asi AccountingServiceImpl) processStream(stream RecordStream, consumer consumer.Consumer) error {
 
-	switch id.Data.(type) {
-	case *goat_grpc.AccountingData_Identifier:
-		return id.GetIdentifier(), nil
-	default:
-		return "", ErrFirstClientIdentifier
-	}
-}
-
-// Process is a GRPC call -- do not use!
-func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_ProcessServer) error {
-	id, err := asi.receiveIdentifier(stream)
+	id, err := stream.ReceiveIdentifier()
 	if err != nil {
 		return err
 	}
 
 	consumerContext, cancelConsumers := context.WithCancel(context.Background())
-	defer cancelConsumers()
 
-	// prepare channels for individual data types
-	vms := make(chan wrapper.RecordWrapper)
-	ips := make(chan wrapper.RecordWrapper)
-	storages := make(chan wrapper.RecordWrapper)
+	defer func() {
+		cancelConsumers()
+		e := stream.Close()
+		if err == nil {
+			err = e
+		}
+	}()
 
-	results1, err := asi.vmConsumer.Consume(consumerContext, id, vms)
-	if err != nil {
-		return err
-	}
-
-	results2, err := asi.ipConsumer.Consume(consumerContext, id, ips)
-	if err != nil {
-		return err
-	}
-
-	results3, err := asi.storageConsumer.Consume(consumerContext, id, storages)
+	records := make(chan wrapper.RecordWrapper)
+	results, err := consumer.Consume(consumerContext, id, records)
 	if err != nil {
 		return err
 	}
 
 	for {
-		data, err := stream.Recv()
-
+		record, err := stream.Receive()
 		if err == io.EOF {
-			close(vms)
-			close(ips)
-			close(storages)
-
-			consumer.CheckResults(func(_ error) {
-				// TODO handle errors here
-			}, results1, results2, results3)
-			return stream.SendAndClose(&empty.Empty{})
+			close(records)
+			// caller should not be informed that an error occured if the stream just ended.
+			err = nil
+			return err
 		}
 
 		if err != nil {
 			return err
 		}
 
-		switch data.Data.(type) {
-		case *goat_grpc.AccountingData_Identifier:
-			return ErrNonFirstClientIdentifier
-		case *goat_grpc.AccountingData_Vm:
-			vms <- wrapper.WrapVM(*data.GetVm())
-		case *goat_grpc.AccountingData_Ip:
-			ips <- wrapper.WrapIP(*data.GetIp())
-		case *goat_grpc.AccountingData_Storage:
-			storages <- wrapper.WrapStorage(*data.GetStorage())
-		default:
-			return ErrUnknownMessageType
+	inner:
+		for {
+			select {
+			case records <- record:
+				break inner
+			// see if there is an error
+			case res := <-results:
+				if !res.IsOK() {
+					return res.Error()
+				}
+			}
 		}
 	}
+}
+
+// Process is a GRPC call -- do not use
+func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_ProcessServer) error {
+	return asi.processStream(WrapGrpc(stream), asi.vmConsumer)
 }
