@@ -85,7 +85,17 @@ func (asi AccountingServiceImpl) processStream(stream RecordStream, consumer con
 	}
 }
 
-// Process is a GRPC call -- do not use
-func (asi AccountingServiceImpl) Process(stream goat_grpc.AccountingService_ProcessServer) error {
-	return asi.processStream(WrapGrpc(stream), asi.vmConsumer)
+// ProcessVms is a GRPC call -- do not use
+func (asi AccountingServiceImpl) ProcessVms(vms goat_grpc.AccountingService_ProcessVmsServer) error {
+	return asi.processStream(WrapVms(vms), asi.vmConsumer)
+}
+
+// ProcessIps is a GRPC call -- do not use
+func (asi AccountingServiceImpl) ProcessIps(ips goat_grpc.AccountingService_ProcessIpsServer) error {
+	return asi.processStream(WrapIps(ips), asi.ipConsumer)
+}
+
+// ProcessStorages is a GRPC call -- do not use
+func (asi AccountingServiceImpl) ProcessStorages(storages goat_grpc.AccountingService_ProcessStoragesServer) error {
+	return asi.processStream(WrapStorages(storages), asi.storageConsumer)
 }
