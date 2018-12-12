@@ -2,7 +2,7 @@ package consumer
 
 import (
 	"context"
-	"github.com/goat-project/goat-proto-go"
+	"github.com/goat-project/goat/consumer/wrapper"
 )
 
 // WriterConsumer processes accounting data by transforming them according to supplied templates and subsequently writing to a file
@@ -19,20 +19,8 @@ func NewWriter(dir, templatesDir string) WriterConsumer {
 	}
 }
 
-// ConsumeIps transforms IpRecord-s into text and writes them to a subdirectory of dir specified by WriterConsumer's dir field. Each IpRecord is written to its own file.
-func (wc WriterConsumer) ConsumeIps(ctx context.Context, id string, ips <-chan goat_grpc.IpRecord) (ResultsChannel, error) {
-	res := make(chan Result)
-	return res, nil
-}
-
-// ConsumeVms transforms VmRecord-s into text and writes them to a subdirectory of dir specified by WriterConsumer's dir field. Each VmRecord is written to its own file.
-func (wc WriterConsumer) ConsumeVms(ctx context.Context, id string, vms <-chan goat_grpc.VmRecord) (ResultsChannel, error) {
-	res := make(chan Result)
-	return res, nil
-}
-
-// ConsumeStorages transforms StorageRecord-s into text and writes them to a subdirectory of dir specified by WriterConsumer's dir field. Each StorageRecord is written to its own file.
-func (wc WriterConsumer) ConsumeStorages(ctx context.Context, id string, sts <-chan goat_grpc.StorageRecord) (ResultsChannel, error) {
+// Consume transforms Record-s into text and writes them to a subdirectory of dir specified by WriterConsumer's dir field. Each IpRecord is written to its own file.
+func (wc WriterConsumer) Consume(ctx context.Context, id string, records <-chan wrapper.RecordWrapper) (ResultsChannel, error) {
 	res := make(chan Result)
 	return res, nil
 }
