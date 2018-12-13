@@ -3,11 +3,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9e1960a3af770966349b91d00e58aae3725646a821b52a47702e601532d1de57"
+  digest = "1:30e90851c7306f8243916c401e18a8535cbfc1f11e34d75f0243602f4191ba53"
   name = "github.com/goat-project/goat-proto-go"
   packages = ["."]
   pruneopts = ""
-  revision = "268c1c161c790c20484a5367564c3ddfa3b572f4"
+  revision = "f24ada67b5ee93ea6aa3233f018a1e7dfa0ef89c"
 
 [[projects]]
   digest = "1:3dd078fda7500c341bc26cfbc6c6a34614f295a2457149fc1045cab767cbcf18"
