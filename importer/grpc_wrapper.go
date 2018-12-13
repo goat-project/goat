@@ -53,29 +53,29 @@ func (gsw grpcStreamWrapper) ReceiveIdentifier() (string, error) {
 }
 
 func (gsw grpcStreamWrapper) Receive() (wrapper.RecordWrapper, error) {
-	identifiable, err := gsw.stream.Recv()
+	data, err := gsw.stream.Recv()
 
 	if err != nil {
 		return nil, err
 	}
 
-	switch identifiable.(type) {
+	switch data.(type) {
 	case *goat_grpc.IpData:
-		ipd := identifiable.(*goat_grpc.IpData).GetIp()
+		ipd := data.(*goat_grpc.IpData).GetIp()
 		if ipd == nil {
 			return nil, ErrNonFirstClientIdentifier
 		}
 
 		return wrapper.WrapIP(*ipd), nil
 	case *goat_grpc.VmData:
-		vmd := identifiable.(*goat_grpc.VmData).GetVm()
+		vmd := data.(*goat_grpc.VmData).GetVm()
 		if vmd == nil {
 			return nil, ErrNonFirstClientIdentifier
 		}
 
 		return wrapper.WrapVM(*vmd), nil
 	case *goat_grpc.StorageData:
-		std := identifiable.(*goat_grpc.StorageData).GetStorage()
+		std := data.(*goat_grpc.StorageData).GetStorage()
 		if std == nil {
 			return nil, ErrNonFirstClientIdentifier
 		}
