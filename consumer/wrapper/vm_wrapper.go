@@ -12,6 +12,8 @@ type vmWrapper struct {
 }
 
 type vmTemplate struct {
+	// naming of these fields must be consistent with vm.tmpl
+
 	VMUUID              string
 	SiteName            string
 	CloudComputeService *string

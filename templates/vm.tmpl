@@ -1,0 +1,34 @@
+{{define "optional"}}
+{{if .}} {{.}} {{else}} NULL {{end}}
+{{end}}
+
+{{define "VM"}}
+APEL-cloud-message: v0.4
+VMUUID: {{.VMUUID}}
+SiteName: {{.SiteName}}
+CloudComputeService: {{template "optional" .CloudComputeService}}
+MachineName: {{template "optional" .MachineName}}
+LocalUserId: {{template "optional" .LocalUserID}}
+LocalGroupId: {{template "optional" .LocalGroupID}}
+GlobalUserName: {{.GlobalUserName}}
+FQAN: {{template "optional" .Fqan}}
+Status: {{template "optional" .Status}}
+StartTime: {{.StartTime}}
+EndTime: {{template "optional" .EndTime}}
+SuspendDuration: {{template "optional" .SuspendDuration}}
+WallDuration: {{template "optional" .WallDuration}}
+CpuDuration: {{template "optional" .CPUDuration}}
+CpuCount: {{template "optional" .CPUCount}}
+NetworkType: {{template "optional" .NetworkType}}
+NetworkInbound: {{template "optional" .NetworkInbound}}
+NetworkOutbound: {{template "optional" .NetworkOutbound}}
+PublicIPCount: {{template "optional" .PublicIPCount}}
+Memory: {{template "optional" .Memory}}
+Disk: {{template "optional" .Disk}}
+StorageRecordId: {{template "optional" .StorageRecordID}}
+ImageId: {{template "optional" .ImageID}}
+CloudType: {{.CloudType}}
+BenchmarkType: {{template "optional" .BenchmarkType}}
+Benchmark: {{template "optional" .Benchmark}}
+%%
+{{end}}
