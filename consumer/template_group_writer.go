@@ -12,6 +12,7 @@ import (
 
 const (
 	templateFileExtension = "tmpl"
+	filenameFormat        = "%014d"
 )
 
 // TemplateGroupWriter converts each record to template and writes it to file. Multiple records may be written into a single file.
@@ -20,19 +21,19 @@ type TemplateGroupWriter struct {
 	templatesDir string
 	countPerFile uint64
 	templateName string
-	outExtension string
 	template     *template.Template
+	records      []interface{}
 }
 
 // NewTemplateGroupWriter creates a new TemplateGroupWriter.
-func NewTemplateGroupWriter(dir, templatesDir, templateName, outExtension string, countPerFile uint64) TemplateGroupWriter {
+func NewTemplateGroupWriter(dir, templatesDir, templateName string, countPerFile uint64) TemplateGroupWriter {
 	return TemplateGroupWriter{
 		dir:          dir,
 		templatesDir: templatesDir,
 		countPerFile: countPerFile,
 		templateName: templateName,
-		outExtension: outExtension,
 		template:     nil,
+		records:      make([]interface{}, countPerFile),
 	}
 }
 
@@ -68,6 +69,23 @@ func trySendError(ctx context.Context, res chan<- Result, err error) {
 	}
 }
 
+func writeFile(records []interface{}, recordCount uint64, template *template.Template, filename, templateName string) error {
+	// open the file
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+
+	// write templateData to file
+	err = template.ExecuteTemplate(file, templateName, records)
+	if err != nil {
+		return err
+	}
+
+	// close file
+	return file.Close()
+}
+
 // Consume converts each record to template and writes it to file. Multiple records may be written into a single file.
 func (tgw TemplateGroupWriter) Consume(ctx context.Context, id string, records <-chan wrapper.RecordWrapper) (ResultsChannel, error) {
 	res := make(chan Result)
@@ -80,21 +98,9 @@ func (tgw TemplateGroupWriter) Consume(ctx context.Context, id string, records <
 		return nil, err
 	}
 
-	// open the initial file
-	file, err := os.Create(path.Join(tgw.dir, path.Join(id, fmt.Sprintf("0.%s", tgw.outExtension))))
-	if err != nil {
-		return nil, err
-	}
-
 	go func() {
 
-		defer func() {
-			err := file.Close()
-			trySendError(ctx, res, err)
-
-			// res must be closed after the file, as it might be used to send the last error
-			close(res)
-		}()
+		defer close(res)
 
 		var countInFile, filenameCounter uint64
 		countInFile, filenameCounter = 0, 0
@@ -103,38 +109,37 @@ func (tgw TemplateGroupWriter) Consume(ctx context.Context, id string, records <
 			case templateData, ok := <-records:
 				if !ok {
 					// end of stream
+					if countInFile > 0 {
+						// but we have something to save!
+						err := writeFile(tgw.records, countInFile, tgw.template, path.Join(tgw.dir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter))), "VMS")
+						if err != nil {
+							trySendError(ctx, res, err)
+						}
+					}
 					return
 				}
-				// write templateData to file
-				err := tgw.template.ExecuteTemplate(file, tgw.templateName, templateData)
+
+				// convert received record to template
+				rec, err := templateData.AsTemplate()
 				if err != nil {
 					trySendError(ctx, res, err)
-					return
 				}
+
+				// save it for later
+				tgw.records[countInFile] = rec
 
 				countInFile++
 
 				// if we already have this many records in the file
 				if countInFile == tgw.countPerFile {
 
-					// close file
-					err = file.Close()
+					err = writeFile(tgw.records, countInFile, tgw.template, path.Join(tgw.dir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter))), "VMS")
 					if err != nil {
 						trySendError(ctx, res, err)
-						// exit on error
-						return
 					}
 
 					// increase filename counter
 					filenameCounter++
-
-					// open next file
-					file, err = os.Create(path.Join(tgw.dir, path.Join(id, fmt.Sprintf("%d.%s", filenameCounter, tgw.outExtension))))
-					if err != nil {
-						trySendError(ctx, res, err)
-						// exit on error
-						return
-					}
 
 					// reset record in file counter
 					countInFile = 0
