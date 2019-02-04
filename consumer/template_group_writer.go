@@ -15,6 +15,10 @@ const (
 	filenameFormat        = "%014d"
 )
 
+type vmsTemplateData struct {
+	Vms []interface{}
+}
+
 // TemplateGroupWriter converts each record to template and writes it to file. Multiple records may be written into a single file.
 type TemplateGroupWriter struct {
 	dir          string
@@ -69,7 +73,7 @@ func trySendError(ctx context.Context, res chan<- Result, err error) {
 	}
 }
 
-func writeFile(records []interface{}, recordCount uint64, template *template.Template, filename, templateName string) error {
+func writeFile(data interface{}, recordCount uint64, template *template.Template, filename, templateName string) error {
 	// open the file
 	file, err := os.Create(filename)
 	if err != nil {
@@ -77,7 +81,7 @@ func writeFile(records []interface{}, recordCount uint64, template *template.Tem
 	}
 
 	// write templateData to file
-	err = template.ExecuteTemplate(file, templateName, records)
+	err = template.ExecuteTemplate(file, templateName, data)
 	if err != nil {
 		return err
 	}
@@ -111,7 +115,8 @@ func (tgw TemplateGroupWriter) Consume(ctx context.Context, id string, records <
 					// end of stream
 					if countInFile > 0 {
 						// but we have something to save!
-						err := writeFile(tgw.records, countInFile, tgw.template, path.Join(tgw.dir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter))), "VMS")
+						templateData := vmsTemplateData{Vms: tgw.records}
+						err := writeFile(templateData, countInFile, tgw.template, path.Join(tgw.dir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter))), tgw.templateName)
 						if err != nil {
 							trySendError(ctx, res, err)
 						}
@@ -132,8 +137,8 @@ func (tgw TemplateGroupWriter) Consume(ctx context.Context, id string, records <
 
 				// if we already have this many records in the file
 				if countInFile == tgw.countPerFile {
-
-					err = writeFile(tgw.records, countInFile, tgw.template, path.Join(tgw.dir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter))), "VMS")
+					templateData := vmsTemplateData{Vms: tgw.records}
+					err = writeFile(templateData, countInFile, tgw.template, path.Join(tgw.dir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter))), tgw.templateName)
 					if err != nil {
 						trySendError(ctx, res, err)
 					}
