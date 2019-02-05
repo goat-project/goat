@@ -35,7 +35,7 @@ func Serve(ip *string, port *uint, tls *bool, certFile *string, keyFile *string,
 
 	grpcServer := grpc.NewServer(opts...)
 
-	wr := consumer.NewTemplateGroupWriter(*outDir, *templatesDir, "VMS", vmPerFile)
+	wr := consumer.NewTemplateGroupWriter(*outDir, *templatesDir, vmPerFile)
 	goat_grpc.RegisterAccountingServiceServer(grpcServer, importer.NewAccountingServiceImpl(wr, wr, wr))
 
 	return grpcServer.Serve(server)
