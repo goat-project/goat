@@ -72,7 +72,9 @@ func trySendError(ctx context.Context, res chan<- Result, err error) {
 	}
 }
 
-func writeFile(data interface{}, recordCount uint64, template *template.Template, filename string) error {
+func (tgw TemplateGroupWriter) writeFile(id string, countInFile, filenameCounter uint64) error {
+	templateData := vmsTemplateData{Vms: tgw.records}
+	filename := path.Join(tgw.outputDir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter)))
 	// open the file
 	file, err := os.Create(filename)
 	if err != nil {
@@ -80,7 +82,7 @@ func writeFile(data interface{}, recordCount uint64, template *template.Template
 	}
 
 	// write templateData to file
-	err = template.ExecuteTemplate(file, templateName, data)
+	err = tgw.template.ExecuteTemplate(file, templateName, templateData)
 	if err != nil {
 		return err
 	}
@@ -113,9 +115,8 @@ func (tgw TemplateGroupWriter) Consume(ctx context.Context, id string, records <
 				if !ok {
 					// end of stream
 					if countInFile > 0 {
+						err := tgw.writeFile(id, countInFile, filenameCounter)
 						// but we have something to save!
-						templateData := vmsTemplateData{Vms: tgw.records}
-						err := writeFile(templateData, countInFile, tgw.template, path.Join(tgw.outputDir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter))))
 						if err != nil {
 							trySendError(ctx, res, err)
 						}
@@ -136,8 +137,7 @@ func (tgw TemplateGroupWriter) Consume(ctx context.Context, id string, records <
 
 				// if we already have this many records in the file
 				if countInFile == tgw.countPerFile {
-					templateData := vmsTemplateData{Vms: tgw.records}
-					err = writeFile(templateData, countInFile, tgw.template, path.Join(tgw.outputDir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter))))
+					err := tgw.writeFile(id, countInFile, filenameCounter)
 					if err != nil {
 						trySendError(ctx, res, err)
 					}
