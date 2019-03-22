@@ -73,7 +73,9 @@ func trySendError(ctx context.Context, res chan<- Result, err error) {
 }
 
 func (tgw TemplateGroupWriter) writeFile(id string, countInFile, filenameCounter uint64) error {
-	templateData := vmsTemplateData{Vms: tgw.records}
+	newRecords := make([]interface{}, countInFile)
+	copy(newRecords, tgw.records)
+	templateData := vmsTemplateData{Vms: newRecords}
 	filename := path.Join(tgw.outputDir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter)))
 	// open the file
 	file, err := os.Create(filename)
