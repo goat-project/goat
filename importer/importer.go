@@ -25,8 +25,10 @@ type AccountingServiceImpl struct {
 	storageConsumer consumer.Consumer
 }
 
-// NewAccountingServiceImpl creates a grpc server that sends received data to given channels and uses clientIdentifierValidator to validate client identifiers
-func NewAccountingServiceImpl(vmConsumer consumer.Consumer, ipConsumer consumer.Consumer, storageConsumer consumer.Consumer) AccountingServiceImpl {
+// NewAccountingServiceImpl creates a grpc server that sends received data to given channels and
+// uses clientIdentifierValidator to validate client identifiers
+func NewAccountingServiceImpl(vmConsumer consumer.Consumer, ipConsumer consumer.Consumer,
+	storageConsumer consumer.Consumer) AccountingServiceImpl {
 	return AccountingServiceImpl{
 		vmConsumer:      vmConsumer,
 		ipConsumer:      ipConsumer,

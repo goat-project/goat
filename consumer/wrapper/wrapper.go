@@ -2,6 +2,7 @@ package wrapper
 
 import (
 	"errors"
+
 	"github.com/goat-project/goat-proto-go"
 )
 
@@ -15,13 +16,16 @@ type RecordWrapper interface {
 	// Filename returns name of file this should be saved in WITHOUT extension
 	Filename() string
 
-	// AsJSON returns an annotated structure that can be serialized to JSON. ErrNotImplemented is returned if the operation is not implemented
+	// AsJSON returns an annotated structure that can be serialized to JSON.
+	// ErrNotImplemented is returned if the operation is not implemented
 	AsJSON() (interface{}, error)
 
-	// AsXML returns an annotated structure that can be serialized to XML. ErrNotImplemented is returned if the operation is not implemented
+	// AsXML returns an annotated structure that can be serialized to XML.
+	// ErrNotImplemented is returned if the operation is not implemented
 	AsXML() (interface{}, error)
 
-	// AsTemplate returns a structure that can be serialized via template. ErrNotImplemented is returned if the operation is not implemented
+	// AsTemplate returns a structure that can be serialized via template.
+	// ErrNotImplemented is returned if the operation is not implemented
 	AsTemplate() (interface{}, error)
 }
 
