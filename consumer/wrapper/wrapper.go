@@ -8,7 +8,7 @@ import (
 
 var (
 	// ErrNotImplemented signals that the called method is not implemented
-	ErrNotImplemented = errors.New("Not implemented")
+	ErrNotImplemented = errors.New("not implemented")
 )
 
 // RecordWrapper is an interface to wrap record types

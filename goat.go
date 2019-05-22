@@ -22,19 +22,19 @@ var (
 func checkArgs() error {
 	if *tls {
 		if *certFile == "" {
-			return fmt.Errorf("Please specify a -cert-file")
+			return fmt.Errorf("please specify a -cert-file")
 		}
 		if *keyFile == "" {
-			return fmt.Errorf("Please specify a -key-file")
+			return fmt.Errorf("please specify a -key-file")
 		}
 	}
 
 	if *outDir == "" {
-		return fmt.Errorf("Please specify an -out-dir")
+		return fmt.Errorf("please specify an -out-dir")
 	}
 
 	if *templatesDir == "" {
-		return fmt.Errorf("Please specify a -templates-dir")
+		return fmt.Errorf("please specify a -templates-dir")
 	}
 
 	return nil
