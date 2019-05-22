@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+
 	"github.com/goat-project/goat/consumer/wrapper"
 )
 

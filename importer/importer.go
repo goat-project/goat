@@ -3,10 +3,11 @@ package importer
 import (
 	"context"
 	"errors"
-	"github.com/goat-project/goat-proto-go"
+	"io"
+
+	goat_grpc "github.com/goat-project/goat-proto-go"
 	"github.com/goat-project/goat/consumer"
 	"github.com/goat-project/goat/consumer/wrapper"
-	"io"
 )
 
 var (

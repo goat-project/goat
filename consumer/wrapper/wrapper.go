@@ -3,7 +3,7 @@ package wrapper
 import (
 	"errors"
 
-	"github.com/goat-project/goat-proto-go"
+	goat_grpc "github.com/goat-project/goat-proto-go"
 )
 
 var (

@@ -2,12 +2,13 @@ package service
 
 import (
 	"fmt"
-	"github.com/goat-project/goat-proto-go"
+	"net"
+
+	goat_grpc "github.com/goat-project/goat-proto-go"
 	"github.com/goat-project/goat/consumer"
 	"github.com/goat-project/goat/importer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"net"
 )
 
 // Serve starts grpc server on ip:port, optionally using tls. If *tls == true, then *certFile and

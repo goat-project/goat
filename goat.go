@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/goat-project/goat/service"
 	"log"
+
+	"github.com/goat-project/goat/service"
 )
 
 // CLI option names
