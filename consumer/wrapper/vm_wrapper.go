@@ -2,7 +2,8 @@ package wrapper
 
 import (
 	"fmt"
-	"github.com/goat-project/goat-proto-go"
+
+	goat_grpc "github.com/goat-project/goat-proto-go"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 )
 

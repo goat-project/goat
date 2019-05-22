@@ -1,7 +1,7 @@
 package importer
 
 import (
-	"github.com/goat-project/goat-proto-go"
+	goat_grpc "github.com/goat-project/goat-proto-go"
 	"github.com/goat-project/goat/consumer/wrapper"
 	"github.com/golang/protobuf/ptypes/empty"
 )

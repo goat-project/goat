@@ -42,7 +42,8 @@ func NewOkResult() Result {
 	}
 }
 
-// CheckResults reads all results from given results channels. When an error is encountered, onError is called with the underlying error
+// CheckResults reads all results from given results channels.
+// When an error is encountered, onError is called with the underlying error
 func CheckResults(onError ErrHandler, chans ...ResultsChannel) {
 	var wg sync.WaitGroup
 	multiplex := func(c ResultsChannel) {

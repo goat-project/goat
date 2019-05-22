@@ -3,19 +3,20 @@ package importer
 import (
 	"context"
 	"errors"
-	"github.com/goat-project/goat-proto-go"
+	"io"
+
+	goat_grpc "github.com/goat-project/goat-proto-go"
 	"github.com/goat-project/goat/consumer"
 	"github.com/goat-project/goat/consumer/wrapper"
-	"io"
 )
 
 var (
 	// ErrFirstClientIdentifier indicates that the first message of the stream is not client identifier
-	ErrFirstClientIdentifier = errors.New("First message in the stream must be client identifier")
+	ErrFirstClientIdentifier = errors.New("first message in the stream must be client identifier")
 	// ErrNonFirstClientIdentifier indicates that client identifier was found as a non-first message of the stream
-	ErrNonFirstClientIdentifier = errors.New("Client identifier found as a non-first message of the stream")
+	ErrNonFirstClientIdentifier = errors.New("client identifier found as a non-first message of the stream")
 	// ErrUnknownMessageType indicates that an unknown type has arrived as part of data stream
-	ErrUnknownMessageType = errors.New("Unhandled message type received")
+	ErrUnknownMessageType = errors.New("unhandled message type received")
 )
 
 // AccountingServiceImpl implements goat_grpc.AccountingService server
@@ -25,8 +26,10 @@ type AccountingServiceImpl struct {
 	storageConsumer consumer.Consumer
 }
 
-// NewAccountingServiceImpl creates a grpc server that sends received data to given channels and uses clientIdentifierValidator to validate client identifiers
-func NewAccountingServiceImpl(vmConsumer consumer.Consumer, ipConsumer consumer.Consumer, storageConsumer consumer.Consumer) AccountingServiceImpl {
+// NewAccountingServiceImpl creates a grpc server that sends received data to given channels and
+// uses clientIdentifierValidator to validate client identifiers
+func NewAccountingServiceImpl(vmConsumer consumer.Consumer, ipConsumer consumer.Consumer,
+	storageConsumer consumer.Consumer) AccountingServiceImpl {
 	return AccountingServiceImpl{
 		vmConsumer:      vmConsumer,
 		ipConsumer:      ipConsumer,
@@ -61,7 +64,7 @@ func (asi AccountingServiceImpl) processStream(stream RecordStream, consumer con
 		record, err := stream.Receive()
 		if err == io.EOF {
 			close(records)
-			// caller should not be informed that an error occured if the stream just ended.
+			// caller should not be informed that an error occurred if the stream just ended.
 			err = nil
 			return err
 		}
