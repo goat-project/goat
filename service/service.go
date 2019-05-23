@@ -11,6 +11,10 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
+const (
+	vmPerFile = 500
+)
+
 // Serve starts grpc server on ip:port, optionally using tls. If *tls == true, then *certFile and
 // *keyFile must be != null
 func Serve(ip *string, port *uint, tls *bool, certFile *string, keyFile *string, outDir *string,
@@ -31,7 +35,7 @@ func Serve(ip *string, port *uint, tls *bool, certFile *string, keyFile *string,
 
 	grpcServer := grpc.NewServer(opts...)
 
-	wr := consumer.NewWriter(*outDir, *templatesDir)
+	wr := consumer.NewTemplateGroupWriter(*outDir, *templatesDir, vmPerFile)
 	goat_grpc.RegisterAccountingServiceServer(grpcServer, importer.NewAccountingServiceImpl(wr, wr, wr))
 
 	return grpcServer.Serve(server)
