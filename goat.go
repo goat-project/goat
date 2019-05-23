@@ -17,6 +17,7 @@ var (
 	keyFile      = flag.String("key-file", "server.key", "server key file")
 	outDir       = flag.String("out-dir", "", "output directory")
 	templatesDir = flag.String("templates-dir", "", "templates directory")
+	vmPerFile    = flag.Uint64("vm-per-file", 500, "number of VMs per template file")
 )
 
 func checkArgs() error {
@@ -49,7 +50,7 @@ func main() {
 		return
 	}
 
-	err = service.Serve(ip, port, tls, certFile, keyFile, outDir, templatesDir)
+	err = service.Serve(ip, port, tls, certFile, keyFile, outDir, templatesDir, vmPerFile)
 	if err != nil {
 		log.Fatal(err)
 	}
