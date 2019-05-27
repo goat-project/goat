@@ -12,39 +12,56 @@ var (
 
 // WrapVms wraps GRPC stream of VMs in a RecordStream
 func WrapVms(vms goat_grpc.AccountingService_ProcessVmsServer) RecordStream {
-	return grpcStreamWrapper{stream: vms.(grpcStream)}
+	return grpcStreamWrapper{
+		recv: func() (identifiable, error) {
+			return vms.Recv()
+		},
+		close: func() error {
+			return vms.SendAndClose(&emptyMessage)
+		},
+	}
 }
 
 // WrapIps wraps GRPC stream of IPs in a RecordStream
 func WrapIps(ips goat_grpc.AccountingService_ProcessIpsServer) RecordStream {
-	return grpcStreamWrapper{stream: ips.(grpcStream)}
+	return grpcStreamWrapper{
+		recv: func() (identifiable, error) {
+			return ips.Recv()
+		},
+		close: func() error {
+			return ips.SendAndClose(&emptyMessage)
+		},
+	}
 }
 
 // WrapStorages wraps GRPC stream of Storage records in a RecordStream
 func WrapStorages(storages goat_grpc.AccountingService_ProcessStoragesServer) RecordStream {
-	return grpcStreamWrapper{stream: storages.(grpcStream)}
+	return grpcStreamWrapper{
+		recv: func() (identifiable, error) {
+			return storages.Recv()
+		},
+		close: func() error {
+			return storages.SendAndClose(&emptyMessage)
+		},
+	}
 }
 
 type identifiable interface {
 	GetIdentifier() string
 }
 
-type grpcStream interface {
-	Recv() (identifiable, error)
-	SendAndClose(*empty.Empty) error
-}
-
 type grpcStreamWrapper struct {
-	stream grpcStream
+	recv  func() (identifiable, error)
+	close func() error
 }
 
 func (gsw grpcStreamWrapper) ReceiveIdentifier() (string, error) {
-	identifiable, err := gsw.stream.Recv()
+	received, err := gsw.recv()
 	if err != nil {
 		return "", err
 	}
 
-	identifier := identifiable.GetIdentifier()
+	identifier := received.(identifiable).GetIdentifier()
 	if identifier == "" {
 		return "", ErrFirstClientIdentifier
 	}
@@ -53,7 +70,7 @@ func (gsw grpcStreamWrapper) ReceiveIdentifier() (string, error) {
 }
 
 func (gsw grpcStreamWrapper) Receive() (wrapper.RecordWrapper, error) {
-	data, err := gsw.stream.Recv()
+	data, err := gsw.recv()
 
 	if err != nil {
 		return nil, err
@@ -87,5 +104,5 @@ func (gsw grpcStreamWrapper) Receive() (wrapper.RecordWrapper, error) {
 }
 
 func (gsw grpcStreamWrapper) Close() error {
-	return gsw.stream.SendAndClose(&emptyMessage)
+	return gsw.close()
 }
