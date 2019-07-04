@@ -14,7 +14,7 @@ import (
 // Serve starts grpc server on ip:port, optionally using tls. If *tls == true, then *certFile and
 // *keyFile must be != null
 func Serve(ip *string, port *uint, tls *bool, certFile *string, keyFile *string, outDir *string,
-	templatesDir *string, vmPerFile *uint64) error {
+	templatesDir *string, vmPerFile, ipPerFile *uint64) error {
 	server, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *ip, *port))
 	if err != nil {
 		return err
@@ -31,8 +31,9 @@ func Serve(ip *string, port *uint, tls *bool, certFile *string, keyFile *string,
 
 	grpcServer := grpc.NewServer(opts...)
 
-	wr := consumer.NewTemplateGroupWriter(*outDir, *templatesDir, *vmPerFile)
-	goat_grpc.RegisterAccountingServiceServer(grpcServer, importer.NewAccountingServiceImpl(wr, wr, wr))
+	vmWriter := consumer.NewTemplateGroupWriter(*outDir, *templatesDir, *vmPerFile)
+	ipWriter := consumer.NewJSONGroupWriter(*outDir, *ipPerFile)
+	goat_grpc.RegisterAccountingServiceServer(grpcServer, importer.NewAccountingServiceImpl(vmWriter, ipWriter, vmWriter))
 
 	return grpcServer.Serve(server)
 }
