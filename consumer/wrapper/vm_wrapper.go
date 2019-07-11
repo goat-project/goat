@@ -1,7 +1,7 @@
 package wrapper
 
 import (
-	"github.com/goat-project/goat-proto-go"
+	goat_grpc "github.com/goat-project/goat-proto-go"
 )
 
 type vmWrapper struct {
