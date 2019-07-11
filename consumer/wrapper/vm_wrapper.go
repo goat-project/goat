@@ -1,10 +1,7 @@
 package wrapper
 
 import (
-	"fmt"
-
-	goat_grpc "github.com/goat-project/goat-proto-go"
-	wrappers "github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/goat-project/goat-proto-go"
 )
 
 type vmWrapper struct {
@@ -61,36 +58,6 @@ func (vw vmWrapper) AsXML() (interface{}, error) {
 	return nil, ErrNotImplemented
 }
 
-func u64(wr *wrappers.UInt64Value) *uint64 {
-	if wr == nil {
-		return nil
-	}
-	result := new(uint64)
-	*result = wr.GetValue()
-
-	return result
-}
-
-func f32(wr *wrappers.FloatValue) *float32 {
-	if wr == nil {
-		return nil
-	}
-	result := new(float32)
-	*result = wr.GetValue()
-
-	return result
-}
-
-func s(wr fmt.Stringer) *string {
-	if wr == nil {
-		return nil
-	}
-
-	result := new(string)
-	*result = wr.String()
-	return result
-}
-
 func (vw vmWrapper) AsTemplate() (interface{}, error) {
 	return vmTemplate{
 		VMUUID:              vw.vm.GetVmUuid(),
@@ -102,11 +69,11 @@ func (vw vmWrapper) AsTemplate() (interface{}, error) {
 		GlobalUserName:      s(vw.vm.GetGlobalUserName()),
 		Fqan:                s(vw.vm.GetFqan()),
 		Status:              s(vw.vm.GetStatus()),
-		StartTime:           s(vw.vm.GetStartTime()),
-		EndTime:             s(vw.vm.GetEndTime()),
-		SuspendDuration:     s(vw.vm.GetSuspendDuration()),
-		CPUDuration:         s(vw.vm.GetCpuDuration()),
-		WallDuration:        s(vw.vm.GetWallDuration()),
+		StartTime:           st(vw.vm.GetStartTime()),
+		EndTime:             st(vw.vm.GetEndTime()),
+		SuspendDuration:     sd(vw.vm.GetSuspendDuration()),
+		CPUDuration:         sd(vw.vm.GetCpuDuration()),
+		WallDuration:        sd(vw.vm.GetWallDuration()),
 		CPUCount:            vw.vm.GetCpuCount(),
 		NetworkType:         s(vw.vm.GetNetworkType()),
 		NetworkInbound:      u64(vw.vm.GetNetworkInbound()),
