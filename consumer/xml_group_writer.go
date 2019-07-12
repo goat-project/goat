@@ -11,6 +11,7 @@ import (
 )
 
 type storagesXMLData struct {
+	XMLName  xml.Name      `xml:"STORAGES"`
 	Storages []interface{} `xml:"STORAGE"`
 }
 
@@ -98,7 +99,7 @@ func (xgw XMLGroupWriter) Consume(ctx context.Context, id string,
 func (xgw XMLGroupWriter) writeFile(id string, countInFile, filenameCounter uint64) error {
 	newRecords := make([]interface{}, countInFile)
 	copy(newRecords, xgw.records)
-	//xmlData := storagesXMLData{Storages: newRecords}
+	xmlData := storagesXMLData{Storages: newRecords}
 	filename := path.Join(xgw.outputDir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter)))
 	// open the file
 	file, err := os.Create(filename)
@@ -107,7 +108,7 @@ func (xgw XMLGroupWriter) writeFile(id string, countInFile, filenameCounter uint
 	}
 
 	// convert to XML format
-	jd, err := xml.MarshalIndent(newRecords, "", " ")
+	jd, err := xml.MarshalIndent(xmlData, "", " ")
 	if err != nil {
 		return err
 	}
