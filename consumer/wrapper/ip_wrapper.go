@@ -56,15 +56,3 @@ func (iw ipWrapper) AsJSON() (interface{}, error) {
 func (iw ipWrapper) AsTemplate() (interface{}, error) {
 	return nil, ErrNotImplemented
 }
-
-func b(wr string) byte {
-	if wr == "IPv4" {
-		return 4
-	}
-
-	if wr == "IPv6" {
-		return 6
-	}
-
-	return 0
-}
