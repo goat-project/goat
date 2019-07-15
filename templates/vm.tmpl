@@ -1,6 +1,4 @@
-{{define "optional"}}
-{{if .}} {{.}} {{else}} NULL {{end}}
-{{end}}
+{{define "optional"}}{{if .}}{{.}}{{else}}NULL{{end}}{{end}}
 
 {{define "VM"}}
 VMUUID: {{.VMUUID}}
@@ -32,7 +30,5 @@ Benchmark: {{template "optional" .Benchmark}}
 %%
 {{end}}
 
-{{define "VMS"}}
-APEL-cloud-message: v0.4
-{{range .Vms}} {{template "VM" .}} {{end}}
-{{end}}
+{{define "VMS"}}APEL-cloud-message: v0.4
+{{range .Vms}} {{template "VM" .}} {{end}}{{end}}
