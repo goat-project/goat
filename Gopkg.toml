@@ -1,12 +1,11 @@
 [[constraint]]
-name = "github.com/goat-project/goat-proto-go"
-branch = "master"
+  name = "github.com/goat-project/goat-proto-go"
+  branch = "master"
 
 [[constraint]]
-name = "google.golang.org/grpc"
+  name = "google.golang.org/grpc"
+  version = " v1.24.0"
 
 [[constraint]]
-name = "github.com/golang/protobuf"
-
-[[constraint]]
-name = "gopkg.in/yaml.v2"
+  name = "github.com/golang/protobuf"
+  version = "v1.3.2"
