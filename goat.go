@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 
 	"github.com/goat-project/goat/logger"
 
 	"github.com/goat-project/goat/service"
+	"github.com/sirupsen/logrus"
 )
 
 // CLI option names
@@ -55,12 +55,12 @@ func main() {
 
 	err := checkArgs()
 	if err != nil {
-		log.Fatal(err)
+		logrus.WithField("error", err).Fatal("missing required argument")
 		return
 	}
 
 	err = service.Serve(ip, port, tls, certFile, keyFile, outDir, templatesDir, vmPerFile, ipPerFile, stPerFile)
 	if err != nil {
-		log.Fatal(err)
+		logrus.WithField("error", err).Fatal("fatal error serve")
 	}
 }
