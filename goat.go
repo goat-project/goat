@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/goat-project/goat/logger"
+
 	"github.com/goat-project/goat/service"
 )
 
@@ -20,6 +22,9 @@ var (
 	vmPerFile    = flag.Uint64("vm-per-file", 500, "number of VMs per template file")
 	ipPerFile    = flag.Uint64("ip-per-file", 500, "number of IPs per json file")
 	stPerFile    = flag.Uint64("storage-per-file", 500, "number of storages per xml file")
+
+	logPath = flag.String("log-path", "", "log path")
+	debug   = flag.Bool("debug", false, "True for debug mode, false otherwise")
 )
 
 func checkArgs() error {
@@ -45,6 +50,8 @@ func checkArgs() error {
 
 func main() {
 	flag.Parse()
+
+	logger.Init(*logPath, *debug)
 
 	err := checkArgs()
 	if err != nil {

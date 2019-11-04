@@ -7,16 +7,16 @@ import (
 )
 
 // Init initializes logrus by configuration.
-func Init(path *string, debug *bool) {
-	switch *path {
+func Init(path string, debug bool) {
+	switch path {
 	case "":
-		if *debug {
+		if debug {
 			InitLogToStdoutDebug()
 		} else {
 			InitLogToStdout()
 		}
 	default:
-		InitLogToFile(*path)
+		InitLogToFile(path)
 	}
 }
 
