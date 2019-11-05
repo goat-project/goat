@@ -47,22 +47,14 @@ var (
 	debug   = flag.Bool("debug", false, "True for debug mode, false otherwise")
 )
 
-func checkArgs() error {
-	if *tls {
-		if *certFile == "" {
-			return fmt.Errorf("please specify a -cert-file")
+func checkRequired(required []string) error {
+	for _, req := range required {
+		f := flag.Lookup(req)
+		if f != nil {
+			if f.Value.String() == "" {
+				return fmt.Errorf("missing %s, please specify -%s", f.Usage, f.Name)
+			}
 		}
-		if *keyFile == "" {
-			return fmt.Errorf("please specify a -key-file")
-		}
-	}
-
-	if *outDir == "" {
-		return fmt.Errorf("please specify an -out-dir")
-	}
-
-	if *templatesDir == "" {
-		return fmt.Errorf("please specify a -templates-dir")
 	}
 
 	return nil
@@ -82,7 +74,13 @@ func main() {
 
 	logger.Init(*logPath, *debug)
 
-	err := checkArgs()
+	required := []string{outDirName, templatesDirName}
+
+	if *tls {
+		required = append(required, []string{certFileName, keyFileName}...)
+	}
+
+	err := checkRequired(required)
 	if err != nil {
 		logrus.WithField("error", err).Fatal("missing required argument")
 		return
