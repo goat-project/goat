@@ -28,8 +28,7 @@ type AccountingServiceImpl struct {
 
 // NewAccountingServiceImpl creates a grpc server that sends received data to given channels and
 // uses clientIdentifierValidator to validate client identifiers
-func NewAccountingServiceImpl(vmConsumer consumer.Consumer, ipConsumer consumer.Consumer,
-	storageConsumer consumer.Consumer) AccountingServiceImpl {
+func NewAccountingServiceImpl(vmConsumer, ipConsumer, storageConsumer consumer.Consumer) AccountingServiceImpl {
 	return AccountingServiceImpl{
 		vmConsumer:      vmConsumer,
 		ipConsumer:      ipConsumer,
@@ -38,7 +37,6 @@ func NewAccountingServiceImpl(vmConsumer consumer.Consumer, ipConsumer consumer.
 }
 
 func (asi AccountingServiceImpl) processStream(stream RecordStream, consumer consumer.Consumer) error {
-
 	id, err := stream.ReceiveIdentifier()
 	if err != nil {
 		return err
@@ -55,6 +53,7 @@ func (asi AccountingServiceImpl) processStream(stream RecordStream, consumer con
 	}()
 
 	records := make(chan wrapper.RecordWrapper)
+
 	results, err := consumer.Consume(consumerContext, id, records)
 	if err != nil {
 		return err

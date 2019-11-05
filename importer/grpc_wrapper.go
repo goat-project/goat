@@ -6,11 +6,9 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 )
 
-var (
-	emptyMessage = empty.Empty{}
-)
+var emptyMessage = empty.Empty{}
 
-// WrapVms wraps GRPC stream of VMs in a RecordStream
+// WrapVms wraps gRPC stream of VMs in a RecordStream
 func WrapVms(vms goat_grpc.AccountingService_ProcessVmsServer) RecordStream {
 	return grpcStreamWrapper{
 		recv: func() (identifiable, error) {
@@ -22,7 +20,7 @@ func WrapVms(vms goat_grpc.AccountingService_ProcessVmsServer) RecordStream {
 	}
 }
 
-// WrapIps wraps GRPC stream of IPs in a RecordStream
+// WrapIps wraps gRPC stream of IPs in a RecordStream
 func WrapIps(ips goat_grpc.AccountingService_ProcessIpsServer) RecordStream {
 	return grpcStreamWrapper{
 		recv: func() (identifiable, error) {
@@ -34,7 +32,7 @@ func WrapIps(ips goat_grpc.AccountingService_ProcessIpsServer) RecordStream {
 	}
 }
 
-// WrapStorages wraps GRPC stream of Storage records in a RecordStream
+// WrapStorages wraps gRPC stream of Storage records in a RecordStream
 func WrapStorages(storages goat_grpc.AccountingService_ProcessStoragesServer) RecordStream {
 	return grpcStreamWrapper{
 		recv: func() (identifiable, error) {
