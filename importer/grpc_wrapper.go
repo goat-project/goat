@@ -1,6 +1,8 @@
 package importer
 
 import (
+	"errors"
+
 	goat_grpc "github.com/goat-project/goat-proto-go"
 	"github.com/goat-project/goat/consumer/wrapper"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -8,7 +10,17 @@ import (
 
 var emptyMessage = empty.Empty{}
 
-// WrapVms wraps gRPC stream of VMs in a RecordStream
+// errors
+var (
+	// errFirstClientIdentifier indicates that the first message of the stream is not client identifier
+	errFirstClientIdentifier = errors.New("first message in the stream must be client identifier")
+	// errNonFirstClientIdentifier indicates that client identifier was found as a non-first message of the stream
+	errNonFirstClientIdentifier = errors.New("client identifier found as a non-first message of the stream")
+	// errUnknownMessageType indicates that an unknown type has arrived as part of data stream
+	errUnknownMessageType = errors.New("unhandled message type received")
+)
+
+// WrapVms wraps GRPC stream of VMs in a RecordStream
 func WrapVms(vms goat_grpc.AccountingService_ProcessVmsServer) RecordStream {
 	return grpcStreamWrapper{
 		recv: func() (identifiable, error) {
@@ -61,7 +73,7 @@ func (gsw grpcStreamWrapper) ReceiveIdentifier() (string, error) {
 
 	identifier := received.(identifiable).GetIdentifier()
 	if identifier == "" {
-		return "", ErrFirstClientIdentifier
+		return "", errFirstClientIdentifier
 	}
 
 	return identifier, nil
@@ -78,26 +90,26 @@ func (gsw grpcStreamWrapper) Receive() (wrapper.RecordWrapper, error) {
 	case *goat_grpc.IpData:
 		ipd := data.(*goat_grpc.IpData).GetIp()
 		if ipd == nil {
-			return nil, ErrNonFirstClientIdentifier
+			return nil, errNonFirstClientIdentifier
 		}
 
 		return wrapper.WrapIP(*ipd), nil
 	case *goat_grpc.VmData:
 		vmd := data.(*goat_grpc.VmData).GetVm()
 		if vmd == nil {
-			return nil, ErrNonFirstClientIdentifier
+			return nil, errNonFirstClientIdentifier
 		}
 
 		return wrapper.WrapVM(*vmd), nil
 	case *goat_grpc.StorageData:
 		std := data.(*goat_grpc.StorageData).GetStorage()
 		if std == nil {
-			return nil, ErrNonFirstClientIdentifier
+			return nil, errNonFirstClientIdentifier
 		}
 
 		return wrapper.WrapStorage(*std), nil
 	default:
-		return nil, ErrUnknownMessageType
+		return nil, errUnknownMessageType
 	}
 }
 

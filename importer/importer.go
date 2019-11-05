@@ -2,21 +2,11 @@ package importer
 
 import (
 	"context"
-	"errors"
 	"io"
 
 	goat_grpc "github.com/goat-project/goat-proto-go"
 	"github.com/goat-project/goat/consumer"
 	"github.com/goat-project/goat/consumer/wrapper"
-)
-
-var (
-	// ErrFirstClientIdentifier indicates that the first message of the stream is not client identifier
-	ErrFirstClientIdentifier = errors.New("first message in the stream must be client identifier")
-	// ErrNonFirstClientIdentifier indicates that client identifier was found as a non-first message of the stream
-	ErrNonFirstClientIdentifier = errors.New("client identifier found as a non-first message of the stream")
-	// ErrUnknownMessageType indicates that an unknown type has arrived as part of data stream
-	ErrUnknownMessageType = errors.New("unhandled message type received")
 )
 
 // AccountingServiceImpl implements goat_grpc.AccountingService server
