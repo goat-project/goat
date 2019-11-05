@@ -32,19 +32,19 @@ var allFlags = []string{ipName, portName, tlsName, certFileName, keyFileName, ou
 
 // CLI option values
 var (
-	ip           = flag.String("listen-ip", "127.0.0.1", "IP address to bind to")
-	port         = flag.Uint("port", 9623, "port to bind to")
-	tls          = flag.Bool("tls", false, "True uses TLS, false uses plaintext TCP")
-	certFile     = flag.String("cert-file", "server.pem", "server certificate file")
-	keyFile      = flag.String("key-file", "server.key", "server key file")
-	outDir       = flag.String("out-dir", "", "output directory")
-	templatesDir = flag.String("templates-dir", "", "templates directory")
-	vmPerFile    = flag.Uint64("vm-per-file", 500, "number of VMs per template file")
-	ipPerFile    = flag.Uint64("ip-per-file", 500, "number of IPs per json file")
-	stPerFile    = flag.Uint64("storage-per-file", 500, "number of storages per xml file")
+	ip           = flag.String(ipName, "127.0.0.1", "IP address to bind to")
+	port         = flag.Uint(portName, 9623, "port to bind to")
+	tls          = flag.Bool(tlsName, false, "True uses TLS, false uses plaintext TCP")
+	certFile     = flag.String(certFileName, "server.pem", "server certificate file")
+	keyFile      = flag.String(keyFileName, "server.key", "server key file")
+	outDir       = flag.String(outDirName, "", "output directory")
+	templatesDir = flag.String(templatesDirName, "", "templates directory")
+	vmPerFile    = flag.Uint64(vmPerFileName, 500, "number of VMs per template file")
+	ipPerFile    = flag.Uint64(ipPerFileName, 500, "number of IPs per json file")
+	stPerFile    = flag.Uint64(stPerFileName, 500, "number of storages per xml file")
 
-	logPath = flag.String("log-path", "", "log path")
-	debug   = flag.Bool("debug", false, "True for debug mode, false otherwise")
+	logPath = flag.String(logPathName, "", "log path")
+	debug   = flag.Bool(debugName, false, "True for debug mode, false otherwise")
 )
 
 func checkRequired(required []string) error {
