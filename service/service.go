@@ -1,8 +1,9 @@
 package service
 
 import (
-	"fmt"
 	"net"
+
+	"github.com/sirupsen/logrus"
 
 	goat_grpc "github.com/goat-project/goat-proto-go"
 	"github.com/goat-project/goat/consumer"
@@ -13,16 +14,16 @@ import (
 
 // Serve starts grpc server on ip:port, optionally using tls. If *tls == true, then *certFile and
 // *keyFile must be != null
-func Serve(ip *string, port *uint, tls *bool, certFile *string, keyFile *string, outDir *string,
-	templatesDir *string, vmPerFile, ipPerFile, stPerFile *uint64) error {
-	server, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *ip, *port))
+func Serve(address string, tls bool, certFile, keyFile, outDir, templatesDir string, vmPerFile, ipPerFile,
+	stPerFile uint64) error {
+	server, err := net.Listen("tcp", address)
 	if err != nil {
 		return err
 	}
 
 	var opts []grpc.ServerOption
-	if *tls {
-		creds, err := credentials.NewServerTLSFromFile(*certFile, *keyFile)
+	if tls {
+		creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
 		if err != nil {
 			return err
 		}
@@ -31,10 +32,12 @@ func Serve(ip *string, port *uint, tls *bool, certFile *string, keyFile *string,
 
 	grpcServer := grpc.NewServer(opts...)
 
-	vmWriter := consumer.NewTemplateGroupWriter(*outDir, *templatesDir, *vmPerFile)
-	ipWriter := consumer.NewJSONGroupWriter(*outDir, *ipPerFile)
-	stWriter := consumer.NewXMLGroupWriter(*outDir, *stPerFile)
+	vmWriter := consumer.NewTemplateGroupWriter(outDir, templatesDir, vmPerFile)
+	ipWriter := consumer.NewJSONGroupWriter(outDir, ipPerFile)
+	stWriter := consumer.NewXMLGroupWriter(outDir, stPerFile)
 	goat_grpc.RegisterAccountingServiceServer(grpcServer, importer.NewAccountingServiceImpl(vmWriter, ipWriter, stWriter))
+
+	logrus.WithField("address", address).Debug("gRPC server listening at")
 
 	return grpcServer.Serve(server)
 }

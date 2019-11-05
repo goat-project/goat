@@ -88,8 +88,9 @@ func main() {
 
 	logFlags(allFlags)
 
-	err = service.Serve(ip, port, tls, certFile, keyFile, outDir, templatesDir, vmPerFile, ipPerFile, stPerFile)
+	err = service.Serve(fmt.Sprintf("%s:%d", *ip, *port), *tls, *certFile, *keyFile, *outDir, *templatesDir,
+		*vmPerFile, *ipPerFile, *stPerFile)
 	if err != nil {
-		logrus.WithField("error", err).Fatal("fatal error serve")
+		logrus.WithField("error", err).Fatal("fatal error run goat")
 	}
 }
