@@ -11,14 +11,14 @@ import (
 
 // AccountingServiceImpl implements goat_grpc.AccountingService server
 type AccountingServiceImpl struct {
-	vmConsumer      consumer.Consumer
-	ipConsumer      consumer.Consumer
-	storageConsumer consumer.Consumer
+	vmConsumer      consumer.Interface
+	ipConsumer      consumer.Interface
+	storageConsumer consumer.Interface
 }
 
 // NewAccountingServiceImpl creates a grpc server that sends received data to given channels and
 // uses clientIdentifierValidator to validate client identifiers
-func NewAccountingServiceImpl(vmConsumer, ipConsumer, storageConsumer consumer.Consumer) AccountingServiceImpl {
+func NewAccountingServiceImpl(vmConsumer, ipConsumer, storageConsumer consumer.Interface) AccountingServiceImpl {
 	return AccountingServiceImpl{
 		vmConsumer:      vmConsumer,
 		ipConsumer:      ipConsumer,
@@ -26,7 +26,7 @@ func NewAccountingServiceImpl(vmConsumer, ipConsumer, storageConsumer consumer.C
 	}
 }
 
-func (asi AccountingServiceImpl) processStream(stream RecordStream, consumer consumer.Consumer) error {
+func (asi AccountingServiceImpl) processStream(stream RecordStream, consumer consumer.Interface) error {
 	id, err := stream.ReceiveIdentifier()
 	if err != nil {
 		return err
