@@ -32,9 +32,9 @@ func Serve(address string, tls bool, certFile, keyFile, outDir, templatesDir str
 
 	grpcServer := grpc.NewServer(opts...)
 
-	vmWriter := consumer.NewTemplateGroupWriter(outDir, templatesDir, vmPerFile)
-	ipWriter := consumer.NewJSONGroupWriter(outDir, ipPerFile)
-	stWriter := consumer.NewXMLGroupWriter(outDir, stPerFile)
+	vmWriter := consumer.CreateConsumer(consumer.NewTemplateGroupWriter(outDir, templatesDir, vmPerFile))
+	ipWriter := consumer.CreateConsumer(consumer.NewJSONGroupWriter(outDir, ipPerFile))
+	stWriter := consumer.CreateConsumer(consumer.NewXMLGroupWriter(outDir, stPerFile))
 	goat_grpc.RegisterAccountingServiceServer(grpcServer, importer.NewAccountingServiceImpl(vmWriter, ipWriter, stWriter))
 
 	logrus.WithField("address", address).Debug("gRPC server listening at")
