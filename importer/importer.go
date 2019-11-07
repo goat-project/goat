@@ -42,9 +42,10 @@ func (asi AccountingServiceImpl) processStream(stream RecordStream, consumer con
 		}
 	}()
 
+	endOfWriting := make(chan bool)
 	records := make(chan wrapper.RecordWrapper)
 
-	results, err := consumer.Consume(consumerContext, id, records)
+	results, err := consumer.Consume(consumerContext, id, endOfWriting, records)
 	if err != nil {
 		return err
 	}
@@ -55,6 +56,10 @@ func (asi AccountingServiceImpl) processStream(stream RecordStream, consumer con
 			close(records)
 			// caller should not be informed that an error occurred if the stream just ended.
 			err = nil
+
+			// It should wait until consumer finishes the work - until it writes all data to the file.
+			<-endOfWriting
+
 			return err
 		}
 
