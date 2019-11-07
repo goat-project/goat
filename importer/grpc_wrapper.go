@@ -86,23 +86,23 @@ func (gsw grpcStreamWrapper) Receive() (wrapper.RecordWrapper, error) {
 		return nil, err
 	}
 
-	switch data.(type) {
+	switch data := data.(type) {
 	case *goat_grpc.IpData:
-		ipd := data.(*goat_grpc.IpData).GetIp()
+		ipd := data.GetIp()
 		if ipd == nil {
 			return nil, errNonFirstClientIdentifier
 		}
 
 		return wrapper.WrapIP(*ipd), nil
 	case *goat_grpc.VmData:
-		vmd := data.(*goat_grpc.VmData).GetVm()
+		vmd := data.GetVm()
 		if vmd == nil {
 			return nil, errNonFirstClientIdentifier
 		}
 
 		return wrapper.WrapVM(*vmd), nil
 	case *goat_grpc.StorageData:
-		std := data.(*goat_grpc.StorageData).GetStorage()
+		std := data.GetStorage()
 		if std == nil {
 			return nil, errNonFirstClientIdentifier
 		}
