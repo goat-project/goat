@@ -1,13 +1,23 @@
 package importer
 
 import (
+	"errors"
+
 	goat_grpc "github.com/goat-project/goat-proto-go"
 	"github.com/goat-project/goat/consumer/wrapper"
 	"github.com/golang/protobuf/ptypes/empty"
 )
 
+var emptyMessage = empty.Empty{}
+
+// errors
 var (
-	emptyMessage = empty.Empty{}
+	// errFirstClientIdentifier indicates that the first message of the stream is not client identifier
+	errFirstClientIdentifier = errors.New("first message in the stream must be client identifier")
+	// errNonFirstClientIdentifier indicates that client identifier was found as a non-first message of the stream
+	errNonFirstClientIdentifier = errors.New("client identifier found as a non-first message of the stream")
+	// errUnknownMessageType indicates that an unknown type has arrived as part of data stream
+	errUnknownMessageType = errors.New("unhandled message type received")
 )
 
 // WrapVms wraps GRPC stream of VMs in a RecordStream
@@ -22,7 +32,7 @@ func WrapVms(vms goat_grpc.AccountingService_ProcessVmsServer) RecordStream {
 	}
 }
 
-// WrapIps wraps GRPC stream of IPs in a RecordStream
+// WrapIps wraps gRPC stream of IPs in a RecordStream
 func WrapIps(ips goat_grpc.AccountingService_ProcessIpsServer) RecordStream {
 	return grpcStreamWrapper{
 		recv: func() (identifiable, error) {
@@ -34,7 +44,7 @@ func WrapIps(ips goat_grpc.AccountingService_ProcessIpsServer) RecordStream {
 	}
 }
 
-// WrapStorages wraps GRPC stream of Storage records in a RecordStream
+// WrapStorages wraps gRPC stream of Storage records in a RecordStream
 func WrapStorages(storages goat_grpc.AccountingService_ProcessStoragesServer) RecordStream {
 	return grpcStreamWrapper{
 		recv: func() (identifiable, error) {
@@ -63,7 +73,7 @@ func (gsw grpcStreamWrapper) ReceiveIdentifier() (string, error) {
 
 	identifier := received.(identifiable).GetIdentifier()
 	if identifier == "" {
-		return "", ErrFirstClientIdentifier
+		return "", errFirstClientIdentifier
 	}
 
 	return identifier, nil
@@ -76,30 +86,30 @@ func (gsw grpcStreamWrapper) Receive() (wrapper.RecordWrapper, error) {
 		return nil, err
 	}
 
-	switch data.(type) {
+	switch data := data.(type) {
 	case *goat_grpc.IpData:
-		ipd := data.(*goat_grpc.IpData).GetIp()
+		ipd := data.GetIp()
 		if ipd == nil {
-			return nil, ErrNonFirstClientIdentifier
+			return nil, errNonFirstClientIdentifier
 		}
 
 		return wrapper.WrapIP(*ipd), nil
 	case *goat_grpc.VmData:
-		vmd := data.(*goat_grpc.VmData).GetVm()
+		vmd := data.GetVm()
 		if vmd == nil {
-			return nil, ErrNonFirstClientIdentifier
+			return nil, errNonFirstClientIdentifier
 		}
 
 		return wrapper.WrapVM(*vmd), nil
 	case *goat_grpc.StorageData:
-		std := data.(*goat_grpc.StorageData).GetStorage()
+		std := data.GetStorage()
 		if std == nil {
-			return nil, ErrNonFirstClientIdentifier
+			return nil, errNonFirstClientIdentifier
 		}
 
 		return wrapper.WrapStorage(*std), nil
 	default:
-		return nil, ErrUnknownMessageType
+		return nil, errUnknownMessageType
 	}
 }
 

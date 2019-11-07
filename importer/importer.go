@@ -2,21 +2,11 @@ package importer
 
 import (
 	"context"
-	"errors"
 	"io"
 
 	goat_grpc "github.com/goat-project/goat-proto-go"
 	"github.com/goat-project/goat/consumer"
 	"github.com/goat-project/goat/consumer/wrapper"
-)
-
-var (
-	// ErrFirstClientIdentifier indicates that the first message of the stream is not client identifier
-	ErrFirstClientIdentifier = errors.New("first message in the stream must be client identifier")
-	// ErrNonFirstClientIdentifier indicates that client identifier was found as a non-first message of the stream
-	ErrNonFirstClientIdentifier = errors.New("client identifier found as a non-first message of the stream")
-	// ErrUnknownMessageType indicates that an unknown type has arrived as part of data stream
-	ErrUnknownMessageType = errors.New("unhandled message type received")
 )
 
 // AccountingServiceImpl implements goat_grpc.AccountingService server
@@ -28,8 +18,7 @@ type AccountingServiceImpl struct {
 
 // NewAccountingServiceImpl creates a grpc server that sends received data to given channels and
 // uses clientIdentifierValidator to validate client identifiers
-func NewAccountingServiceImpl(vmConsumer consumer.Consumer, ipConsumer consumer.Consumer,
-	storageConsumer consumer.Consumer) AccountingServiceImpl {
+func NewAccountingServiceImpl(vmConsumer, ipConsumer, storageConsumer consumer.Consumer) AccountingServiceImpl {
 	return AccountingServiceImpl{
 		vmConsumer:      vmConsumer,
 		ipConsumer:      ipConsumer,
@@ -38,7 +27,6 @@ func NewAccountingServiceImpl(vmConsumer consumer.Consumer, ipConsumer consumer.
 }
 
 func (asi AccountingServiceImpl) processStream(stream RecordStream, consumer consumer.Consumer) error {
-
 	id, err := stream.ReceiveIdentifier()
 	if err != nil {
 		return err
@@ -55,6 +43,7 @@ func (asi AccountingServiceImpl) processStream(stream RecordStream, consumer con
 	}()
 
 	records := make(chan wrapper.RecordWrapper)
+
 	results, err := consumer.Consume(consumerContext, id, records)
 	if err != nil {
 		return err
