@@ -1,13 +1,13 @@
 package consumer
 
 import (
-	"context"
 	"fmt"
-	"os"
+	"io"
 	"path"
 	"text/template"
 
 	"github.com/goat-project/goat/consumer/wrapper"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -23,142 +23,68 @@ type vmsTemplateData struct {
 // TemplateGroupWriter converts each record to template and writes it to file.
 // Multiple records may be written into a single file.
 type TemplateGroupWriter struct {
-	outputDir    string
+	// path to output directory
+	outDir string
+	// count the records per file
+	count uint64
+	// slice of records
+	recs []interface{}
+	// path to template directory
 	templatesDir string
-	countPerFile uint64
-	template     *template.Template
-	records      []interface{}
 }
 
 // NewTemplateGroupWriter creates a new TemplateGroupWriter.
 func NewTemplateGroupWriter(outputDir, templatesDir string, countPerFile uint64) TemplateGroupWriter {
 	return TemplateGroupWriter{
-		outputDir:    outputDir,
+		outDir:       outputDir,
+		count:        countPerFile,
+		recs:         make([]interface{}, countPerFile),
 		templatesDir: templatesDir,
-		countPerFile: countPerFile,
-		template:     nil,
-		records:      make([]interface{}, countPerFile),
 	}
 }
 
-func ensureDirectoryExists(path string) error {
-	err := os.MkdirAll(path, os.ModePerm)
-	if err != nil && err != os.ErrExist {
-		return err
-	}
-
-	return nil
+func (tgw TemplateGroupWriter) outputDir() string {
+	return tgw.outDir
 }
 
-func (tgw *TemplateGroupWriter) initTemplate() error {
-	if tgw.template != nil {
-		return nil
-	}
-
-	template, err := template.ParseGlob(path.Join(tgw.templatesDir, templateFileName))
-	tgw.template = template
-	return err
+func (tgw TemplateGroupWriter) countPerFile() uint64 {
+	return tgw.count
 }
 
-func trySendError(ctx context.Context, res chan<- Result, err error) {
-	for {
-		select {
-		case res <- NewErrorResult(err):
-			// error sent successfully
-			return
-		case <-ctx.Done():
-			// goroutine has been canceled
-			return
-		}
-	}
+func (tgw TemplateGroupWriter) records() []interface{} {
+	return tgw.recs
 }
 
-func (tgw TemplateGroupWriter) writeFile(id string, countInFile, filenameCounter uint64) error {
+func (tgw TemplateGroupWriter) save(rec interface{}, index uint64) {
+	if int(index) >= len(tgw.recs) {
+		// should never happen
+		logrus.WithFields(logrus.Fields{"index": index, "length": len(tgw.recs)}).Error("index out of range")
+		return
+	}
+
+	tgw.recs[index] = rec
+}
+
+func (tgw TemplateGroupWriter) wrap(data wrapper.RecordWrapper) (interface{}, error) {
+	return data.AsTemplate()
+}
+
+func (tgw TemplateGroupWriter) convertAndWrite(file io.Writer, countInFile uint64) error {
+	if file == nil {
+		return fmt.Errorf("unable to write data, file is nil")
+	}
+
+	// copy records to ensure the count in file
 	newRecords := make([]interface{}, countInFile)
-	copy(newRecords, tgw.records)
-	templateData := vmsTemplateData{Vms: newRecords}
-	filename := path.Join(tgw.outputDir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter)))
-	// open the file
-	file, err := os.Create(filename)
+	copy(newRecords, tgw.recs)
+
+	// initialize template
+	tmpl, err := template.ParseGlob(path.Join(tgw.templatesDir, templateFileName))
 	if err != nil {
+		logrus.WithFields(logrus.Fields{"template-name": templateName, "error": err}).Error("unable to initialize template")
 		return err
 	}
 
-	// write templateData to file
-	err = tgw.template.ExecuteTemplate(file, templateName, templateData)
-	if err != nil {
-		return err
-	}
-
-	// close file
-	return file.Close()
-}
-
-// Consume converts each record to template and writes it to file.
-// Multiple records may be written into a single file.
-func (tgw TemplateGroupWriter) Consume(ctx context.Context, id string,
-	records <-chan wrapper.RecordWrapper) (ResultsChannel, error) {
-	res := make(chan Result)
-
-	if err := ensureDirectoryExists(path.Join(tgw.outputDir, id)); err != nil {
-		return nil, err
-	}
-
-	if err := tgw.initTemplate(); err != nil {
-		return nil, err
-	}
-
-	go func() {
-
-		defer close(res)
-
-		var countInFile, filenameCounter uint64
-		countInFile, filenameCounter = 0, 0
-		for {
-			select {
-			case templateData, ok := <-records:
-				if !ok {
-					// end of stream
-					if countInFile > 0 {
-						err := tgw.writeFile(id, countInFile, filenameCounter)
-						// but we have something to save!
-						if err != nil {
-							trySendError(ctx, res, err)
-						}
-					}
-					return
-				}
-
-				// convert received record to template
-				rec, err := templateData.AsTemplate()
-				if err != nil {
-					trySendError(ctx, res, err)
-				}
-
-				// save it for later
-				tgw.records[countInFile] = rec
-
-				countInFile++
-
-				// if we already have this many records in the file
-				if countInFile == tgw.countPerFile {
-					err := tgw.writeFile(id, countInFile, filenameCounter)
-					if err != nil {
-						trySendError(ctx, res, err)
-					}
-
-					// increase filename counter
-					filenameCounter++
-
-					// reset record in file counter
-					countInFile = 0
-				}
-			case <-ctx.Done():
-				// goroutine has been canceled
-				return
-			}
-		}
-	}()
-
-	return res, nil
+	// write template data to file
+	return tmpl.ExecuteTemplate(file, templateName, vmsTemplateData{Vms: newRecords})
 }
