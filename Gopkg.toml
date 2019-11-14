@@ -13,3 +13,19 @@
 [[constraint]]
   name = "github.com/sirupsen/logrus"
   version = "v1.4.2"
+
+[[constraint]]
+  name = "github.com/onsi/ginkgo"
+  version = "v1.10.3"
+
+[[constraint]]
+  name = "github.com/onsi/gomega"
+  version = "v1.7.1"
+
+[[override]]
+  name = "gopkg.in/fsnotify.v1"
+  source = "https://github.com/fsnotify/fsnotify.git"
+
+[[constraint]]
+  name = "github.com/google/uuid"
+  version = "v1.1.1"
