@@ -1,11 +1,11 @@
 package consumer
 
 import (
-	"context"
 	"encoding/xml"
 	"fmt"
-	"os"
-	"path"
+	"io"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/goat-project/goat/consumer/wrapper"
 )
@@ -18,107 +18,66 @@ type storagesXMLData struct {
 // XMLGroupWriter converts each record to XML format and writes it to file.
 // Multiple records may be written into a single file.
 type XMLGroupWriter struct {
-	outputDir    string
-	countPerFile uint64
-	records      []interface{}
+	// path to output directory
+	outDir string
+	// count the records per file
+	count uint64
+	// slice of records
+	recs []interface{}
 }
 
 // NewXMLGroupWriter creates a new XMLGroupWriter.
 func NewXMLGroupWriter(outputDir string, countPerFile uint64) XMLGroupWriter {
 	return XMLGroupWriter{
-		outputDir:    outputDir,
-		countPerFile: countPerFile,
-		records:      make([]interface{}, countPerFile),
+		outDir: outputDir,
+		count:  countPerFile,
+		recs:   make([]interface{}, countPerFile),
 	}
 }
 
-// Consume converts each record to XML and writes it to file.
-// Multiple records may be written into a single file.
-func (xgw XMLGroupWriter) Consume(ctx context.Context, id string,
-	records <-chan wrapper.RecordWrapper) (ResultsChannel, error) {
-	res := make(chan Result)
-
-	if err := ensureDirectoryExists(path.Join(xgw.outputDir, id)); err != nil {
-		return nil, err
-	}
-
-	go func() {
-		defer close(res)
-
-		var countInFile, filenameCounter uint64
-		countInFile, filenameCounter = 0, 0
-		for {
-			select {
-			case xmlData, ok := <-records:
-				if !ok {
-					// end of stream
-					if countInFile > 0 {
-						err := xgw.writeFile(id, countInFile, filenameCounter)
-						// but we have something to save!
-						if err != nil {
-							trySendError(ctx, res, err)
-						}
-					}
-					return
-				}
-
-				// convert received record to XML
-				rec, err := xmlData.AsXML()
-				if err != nil {
-					trySendError(ctx, res, err)
-				}
-
-				// save it for later
-				xgw.records[countInFile] = rec
-
-				countInFile++
-
-				// if we already have this many records in the file
-				if countInFile == xgw.countPerFile {
-					err := xgw.writeFile(id, countInFile, filenameCounter)
-					if err != nil {
-						trySendError(ctx, res, err)
-					}
-
-					// increase filename counter
-					filenameCounter++
-
-					// reset record in file counter
-					countInFile = 0
-				}
-			case <-ctx.Done():
-				// goroutine has been canceled
-				return
-			}
-		}
-	}()
-
-	return res, nil
+func (xgw XMLGroupWriter) outputDir() string {
+	return xgw.outDir
 }
 
-func (xgw XMLGroupWriter) writeFile(id string, countInFile, filenameCounter uint64) error {
+func (xgw XMLGroupWriter) countPerFile() uint64 {
+	return xgw.count
+}
+
+func (xgw XMLGroupWriter) records() []interface{} {
+	return xgw.recs
+}
+
+func (xgw XMLGroupWriter) save(rec interface{}, index uint64) {
+	if int(index) >= len(xgw.recs) {
+		// should never happen
+		logrus.WithFields(logrus.Fields{"index": index, "length": len(xgw.recs)}).Error("index out of range")
+		return
+	}
+
+	xgw.recs[index] = rec
+}
+
+func (xgw XMLGroupWriter) wrap(data wrapper.RecordWrapper) (interface{}, error) {
+	return data.AsXML()
+}
+
+func (xgw XMLGroupWriter) convertAndWrite(file io.Writer, countInFile uint64) error {
+	if file == nil {
+		return fmt.Errorf("unable to write data, file is nil")
+	}
+
+	// copy records to ensure the count in file
 	newRecords := make([]interface{}, countInFile)
-	copy(newRecords, xgw.records)
-	xmlData := storagesXMLData{Storages: newRecords}
-	filename := path.Join(xgw.outputDir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter)))
-	// open the file
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
+	copy(newRecords, xgw.recs)
 
 	// convert to XML format
-	jd, err := xml.MarshalIndent(xmlData, "", " ")
+	xd, err := xml.MarshalIndent(storagesXMLData{Storages: newRecords}, "", " ")
 	if err != nil {
+		logrus.WithField("error", err).Error("unable to convert to XML format")
 		return err
 	}
 
-	// write jsonData to file
-	_, err = file.Write(jd)
-	if err != nil {
-		return err
-	}
-
-	// close file
-	return file.Close()
+	// write XML data to file
+	_, err = file.Write(xd)
+	return err
 }
