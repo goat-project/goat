@@ -37,7 +37,7 @@ func Serve(address string, tls bool, certFile, keyFile, outDir, templatesDir str
 	stWriter := consumer.CreateConsumer(consumer.NewXMLGroupWriter(outDir, stPerFile))
 	goat_grpc.RegisterAccountingServiceServer(grpcServer, importer.NewAccountingServiceImpl(vmWriter, ipWriter, stWriter))
 
-	logrus.WithField("address", address).Debug("gRPC server listening at")
+	logrus.WithField("address", address).Info("gRPC server listening at")
 
 	return grpcServer.Serve(server)
 }

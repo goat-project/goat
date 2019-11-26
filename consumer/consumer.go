@@ -122,7 +122,7 @@ func (c Consumer) writeFile(id string, countInFile, filenameCounter uint64) erro
 		return err
 	}
 
-	logrus.WithFields(logrus.Fields{"id": id, "file-name": file.Name(), "count-in-file": countInFile}).Debug("write file")
+	logrus.WithFields(logrus.Fields{"id": id, "file-name": file.Name(), "count-in-file": countInFile}).Info("write file")
 
 	// close file
 	return file.Close()
