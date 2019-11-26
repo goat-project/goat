@@ -16,7 +16,11 @@ func Init(path string, debug bool) {
 			InitLogToStdout()
 		}
 	default:
-		InitLogToFile(path)
+		if debug {
+			InitLogToFileDebug(path)
+		} else {
+			InitLogToFile(path)
+		}
 	}
 }
 
@@ -45,4 +49,10 @@ func InitLogToFile(logPath string) {
 	}
 
 	logrus.SetOutput(f)
+}
+
+// InitLogToFileDebug inits logrus to log the debug severity or above to the file.
+func InitLogToFileDebug(logPath string) {
+	InitLogToFile(logPath)
+	logrus.SetLevel(logrus.DebugLevel)
 }
