@@ -1,4 +1,4 @@
-![goat](https://github.com/goat-project/goat/blob/master/img/goat.png)
+<img src="https://github.com/goat-project/goat/blob/master/img/goat.png" width="100">
 
 # Goat - GO Accounting Tool
 
