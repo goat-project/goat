@@ -2,6 +2,7 @@ package logger
 
 import (
 	"os"
+	"path"
 
 	"github.com/sirupsen/logrus"
 )
@@ -43,7 +44,7 @@ func InitLogToStdout() {
 func InitLogToFile(logPath string) {
 	logrus.SetFormatter(&logrus.TextFormatter{})
 
-	f, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+	f, err := os.OpenFile(path.Clean(logPath), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
 		logrus.Fatalf("error opening file: %v", err)
 	}
