@@ -11,26 +11,30 @@ type storageWrapper struct {
 }
 
 type storageXML struct {
-	RecordID                  string    `xml:"RECORD_ID"`
-	CreateTime                time.Time `xml:"CREATE_TIME"`
-	StorageSystem             string    `xml:"STORAGE_SYSTEM"`
-	Site                      *string   `xml:"SITE"`
-	StorageShare              *string   `xml:"STORAGE_SHARE"`
-	StorageMedia              *string   `xml:"STORAGE_MEDIA"`
-	StorageClass              *string   `xml:"STORAGE_CLASS"`
-	FileCount                 *string   `xml:"FILE_COUNT"`
-	DirectoryPath             *string   `xml:"DIRECTORY_PATH"`
-	LocalUser                 *string   `xml:"LOCAL_USER"`
-	LocalGroup                *string   `xml:"LOCAL_GROUP"`
-	UserIdentity              *string   `xml:"USER_IDENTITY"`
-	Group                     *string   `xml:"GROUP"`
-	GroupAttribute            *string   `xml:"GROUP_ATTRIBUTE"`
-	GroupAttributeType        *string   `xml:"GROUP_ATTRIBUTE_TYPE"`
-	StartTime                 time.Time `xml:"START_TIME"`
-	EndTime                   time.Time `xml:"END_TIME"`
-	ResourceCapacityUsed      uint64    `xml:"RESOURCE_CAPACITY_USED"`
-	LogicalCapacityUsed       *uint64   `xml:"LOGICAL_CAPACITY_USED"`
-	ResourceCapacityAllocated *uint64   `xml:"RESOURCE_CAPACITY_ALLOCATED"`
+	RecordID                  recordIdentity `xml:"RecordIdentity"`
+	StorageSystem             string         `xml:"StorageSystem"`
+	Site                      *string        `xml:"Site"`
+	StorageShare              *string        `xml:"StorageShare"`
+	StorageMedia              *string        `xml:"StorageMedia"`
+	StorageClass              *string        `xml:"StorageClass"`
+	FileCount                 *string        `xml:"FileCount"`
+	DirectoryPath             *string        `xml:"DirectoryPath"`
+	LocalUser                 *string        `xml:"LocalUser"`
+	LocalGroup                *string        `xml:"LocalGroup"`
+	UserIdentity              *string        `xml:"UserIdentity"`
+	Group                     *string        `xml:"Group"`
+	GroupAttribute            *string        `xml:"GroupAttribute"`
+	GroupAttributeType        *string        `xml:"GroupAttributeType"`
+	StartTime                 time.Time      `xml:"StartTime"`
+	EndTime                   time.Time      `xml:"EndTime"`
+	ResourceCapacityUsed      uint64         `xml:"ResourceCapacityUsed"`
+	LogicalCapacityUsed       *uint64        `xml:"LogicalCapacityUsed"`
+	ResourceCapacityAllocated *uint64        `xml:"ResourceCapacityAllocated"`
+}
+
+type recordIdentity struct {
+	RecordID   string    `xml:"sr:recordId,attr"`
+	CreateTime time.Time `xml:"sr:createTime,attr"`
 }
 
 // NewStorageWrapper wraps given storage in a RecordWrapper
@@ -46,8 +50,10 @@ func (sw storageWrapper) Filename() string {
 
 func (sw storageWrapper) AsXML() (interface{}, error) {
 	return storageXML{
-		RecordID:                  sw.st.GetRecordID(),
-		CreateTime:                time.Unix(sw.st.GetCreateTime().Seconds, 0),
+		RecordID: recordIdentity{
+			RecordID:   sw.st.GetRecordID(),
+			CreateTime: time.Unix(sw.st.GetCreateTime().Seconds, 0),
+		},
 		StorageSystem:             sw.st.GetStorageSystem(),
 		Site:                      s(sw.st.GetSite()),
 		StorageShare:              s(sw.st.GetStorageShare()),
