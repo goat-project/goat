@@ -10,6 +10,7 @@ import (
 	"github.com/goat-project/goat/consumer/wrapper"
 )
 
+// NAMESPACE to eu emi storage record
 const NAMESPACE = "http://eu-emi.eu/namespaces/2011/02/storagerecord"
 
 type storagesXMLData struct {
@@ -86,6 +87,11 @@ func (xgw XMLGroupWriter) convertAndWrite(file io.Writer, countInFile uint64) er
 
 	// write header and XML data to file
 	_, err = file.Write([]byte(xml.Header + "\n"))
+	if err != nil {
+		logrus.WithField("error", err).Error("unable to write XML header")
+		return err
+	}
+
 	_, err = file.Write(xd)
 	return err
 }
