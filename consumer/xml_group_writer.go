@@ -10,9 +10,13 @@ import (
 	"github.com/goat-project/goat/consumer/wrapper"
 )
 
+const NAMESPACE = "http://eu-emi.eu/namespaces/2011/02/storagerecord"
+
 type storagesXMLData struct {
-	XMLName  xml.Name      `xml:"STORAGES"`
-	Storages []interface{} `xml:"STORAGE"`
+	XMLName  xml.Name      `xml:"StorageUsageRecords"`
+	XMLNs    string        `xml:"xmlns,attr"`
+	XMLNsSr  string        `xml:"xmlns:sr,attr"`
+	Storages []interface{} `xml:"StorageUsageRecord"`
 }
 
 // XMLGroupWriter converts each record to XML format and writes it to file.
@@ -71,13 +75,17 @@ func (xgw XMLGroupWriter) convertAndWrite(file io.Writer, countInFile uint64) er
 	copy(newRecords, xgw.recs)
 
 	// convert to XML format
-	xd, err := xml.MarshalIndent(storagesXMLData{Storages: newRecords}, "", " ")
+	xd, err := xml.MarshalIndent(storagesXMLData{
+		XMLNs:    NAMESPACE,
+		XMLNsSr:  NAMESPACE,
+		Storages: newRecords}, "", " ")
 	if err != nil {
 		logrus.WithField("error", err).Error("unable to convert to XML format")
 		return err
 	}
 
-	// write XML data to file
+	// write header and XML data to file
+	_, err = file.Write([]byte(xml.Header + "\n"))
 	_, err = file.Write(xd)
 	return err
 }
