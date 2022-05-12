@@ -15,7 +15,7 @@ import (
 // Serve starts grpc server on ip:port, optionally using tls. If *tls == true, then *certFile and
 // *keyFile must be != null
 func Serve(address string, tls bool, certFile, keyFile, outDir, templatesDir string, vmPerFile, ipPerFile,
-	stPerFile uint64) error {
+	stPerFile, gpuPerFile uint64) error {
 	server, err := net.Listen("tcp", address)
 	if err != nil {
 		return err
@@ -33,9 +33,11 @@ func Serve(address string, tls bool, certFile, keyFile, outDir, templatesDir str
 	grpcServer := grpc.NewServer(opts...)
 
 	vmWriter := consumer.CreateConsumer(consumer.NewTemplateGroupWriter(outDir, templatesDir, vmPerFile))
-	ipWriter := consumer.CreateConsumer(consumer.NewJSONGroupWriter(outDir, ipPerFile))
+	ipWriter := consumer.CreateConsumer(consumer.NewJSONGroupWriter(outDir, ipPerFile, consumer.IP))
 	stWriter := consumer.CreateConsumer(consumer.NewXMLGroupWriter(outDir, stPerFile))
-	goat_grpc.RegisterAccountingServiceServer(grpcServer, importer.NewAccountingServiceImpl(vmWriter, ipWriter, stWriter))
+	gpuWriter := consumer.CreateConsumer(consumer.NewJSONGroupWriter(outDir, gpuPerFile, consumer.GPU))
+	goat_grpc.RegisterAccountingServiceServer(grpcServer, importer.NewAccountingServiceImpl(vmWriter, ipWriter,
+		stWriter, gpuWriter))
 
 	logrus.WithField("address", address).Info("gRPC server listening at")
 
