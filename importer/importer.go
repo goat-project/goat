@@ -11,11 +11,11 @@ import (
 
 // AccountingServiceImpl implements goat_grpc.AccountingService server
 type AccountingServiceImpl struct {
-	vmConsumer      consumer.Interface
-	ipConsumer      consumer.Interface
-	storageConsumer consumer.Interface
-	gpuConsumer     consumer.Interface
-	goat_grpc.UnimplementedAccountingServiceServer
+	vmConsumer                                     consumer.Interface
+	ipConsumer                                     consumer.Interface
+	storageConsumer                                consumer.Interface
+	gpuConsumer                                    consumer.Interface
+	goat_grpc.UnimplementedAccountingServiceServer // warning: struct of size 72 bytes could be of size 64 bytes
 }
 
 // NewAccountingServiceImpl creates a grpc server that sends received data to given channels and
