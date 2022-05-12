@@ -9,8 +9,23 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type recordType string
+
+const (
+	// IP constant to recognize record type
+	IP = "ip"
+	// GPU constant to recognize record type
+	GPU = "gpu"
+)
+
 type ipsJSONData struct {
 	Ips []interface{}
+}
+
+type gpuJSONData struct {
+	Type         string
+	Version      string
+	UsageRecords []interface{}
 }
 
 // JSONGroupWriter converts each record to json format and writes it to file.
@@ -21,15 +36,17 @@ type JSONGroupWriter struct {
 	// count the records per file
 	count uint64
 	// slice of records
-	recs []interface{}
+	recs    []interface{}
+	recType recordType
 }
 
 // NewJSONGroupWriter creates a new JSONGroupWriter.
-func NewJSONGroupWriter(outputDir string, countPerFile uint64) JSONGroupWriter {
+func NewJSONGroupWriter(outputDir string, countPerFile uint64, recType recordType) JSONGroupWriter {
 	return JSONGroupWriter{
-		outDir: outputDir,
-		count:  countPerFile,
-		recs:   make([]interface{}, countPerFile),
+		outDir:  outputDir,
+		count:   countPerFile,
+		recs:    make([]interface{}, countPerFile),
+		recType: recType,
 	}
 }
 
@@ -69,7 +86,19 @@ func (jgw JSONGroupWriter) convertAndWrite(file io.Writer, countInFile uint64) e
 	copy(newRecords, jgw.recs)
 
 	// convert to JSON format
-	jd, err := json.MarshalIndent(ipsJSONData{Ips: newRecords}, "", " ")
+	var jd []byte
+	var err error
+
+	switch jgw.recType {
+	case IP:
+		jd, err = json.MarshalIndent(ipsJSONData{Ips: newRecords}, "", " ")
+	case GPU:
+		jd, err = json.MarshalIndent(gpuJSONData{Type: "APEL GPU message", Version: "0.1", UsageRecords: newRecords}, "", " ")
+	default:
+		logrus.WithField("error", err).Error("unable to recognize to JSON format")
+		return err
+	}
+
 	if err != nil {
 		logrus.WithField("error", err).Error("unable to convert to JSON format")
 		return err
