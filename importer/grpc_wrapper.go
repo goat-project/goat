@@ -83,7 +83,7 @@ func (gsw grpcStreamWrapper) ReceiveIdentifier() (string, error) {
 		return "", err
 	}
 
-	identifier := received.(identifiable).GetIdentifier()
+	identifier := received.GetIdentifier()
 	if identifier == "" {
 		return "", errFirstClientIdentifier
 	}
