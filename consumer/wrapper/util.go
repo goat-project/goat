@@ -20,6 +20,16 @@ func u64(wr *wrappers.UInt64Value) *uint64 {
 	return result
 }
 
+func u32(wr *wrappers.UInt32Value) *uint32 {
+	if wr == nil {
+		return nil
+	}
+	result := new(uint32)
+	*result = wr.GetValue()
+
+	return result
+}
+
 func f32(wr *wrappers.FloatValue) *float32 {
 	if wr == nil {
 		return nil

@@ -43,3 +43,8 @@ func WrapIP(ip goat_grpc.IpRecord) RecordWrapper {
 func WrapStorage(st goat_grpc.StorageRecord) RecordWrapper {
 	return NewStorageWrapper(st)
 }
+
+// WrapGPU wraps given gpu in a RecordWrapper
+func WrapGPU(gpu goat_grpc.GPURecord) RecordWrapper {
+	return NewGPUWrapper(gpu)
+}

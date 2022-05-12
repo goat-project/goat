@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/goat-project/goat/consumer/wrapper"
 	"github.com/sirupsen/logrus"
@@ -151,7 +152,7 @@ nameFinding:
 		filename = path.Join(outputDir, path.Join(id, fmt.Sprintf(filenameFormat, filenameCounter)))
 	}
 
-	return os.Create(filename)
+	return os.Create(filepath.Clean(filename))
 }
 
 // In case of the error on the server side, trySendError informs the client about that error.

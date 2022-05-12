@@ -11,18 +11,22 @@ import (
 
 // AccountingServiceImpl implements goat_grpc.AccountingService server
 type AccountingServiceImpl struct {
-	vmConsumer      consumer.Interface
-	ipConsumer      consumer.Interface
-	storageConsumer consumer.Interface
+	vmConsumer                                     consumer.Interface
+	ipConsumer                                     consumer.Interface
+	storageConsumer                                consumer.Interface
+	gpuConsumer                                    consumer.Interface
+	goat_grpc.UnimplementedAccountingServiceServer // warning: struct of size 72 bytes could be of size 64 bytes
 }
 
 // NewAccountingServiceImpl creates a grpc server that sends received data to given channels and
 // uses clientIdentifierValidator to validate client identifiers
-func NewAccountingServiceImpl(vmConsumer, ipConsumer, storageConsumer consumer.Interface) AccountingServiceImpl {
+func NewAccountingServiceImpl(vmConsumer, ipConsumer, storageConsumer,
+	gpuConsumer consumer.Interface) AccountingServiceImpl {
 	return AccountingServiceImpl{
 		vmConsumer:      vmConsumer,
 		ipConsumer:      ipConsumer,
 		storageConsumer: storageConsumer,
+		gpuConsumer:     gpuConsumer,
 	}
 }
 
@@ -95,4 +99,9 @@ func (asi AccountingServiceImpl) ProcessIps(ips goat_grpc.AccountingService_Proc
 // ProcessStorages is a GRPC call -- do not use
 func (asi AccountingServiceImpl) ProcessStorages(storages goat_grpc.AccountingService_ProcessStoragesServer) error {
 	return asi.processStream(WrapStorages(storages), asi.storageConsumer)
+}
+
+// ProcessGPUs is a GRPC call -- do not use
+func (asi AccountingServiceImpl) ProcessGPUs(gpus goat_grpc.AccountingService_ProcessGPUsServer) error {
+	return asi.processStream(WrapGPUs(gpus), asi.gpuConsumer)
 }

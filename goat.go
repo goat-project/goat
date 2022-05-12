@@ -22,13 +22,14 @@ var (
 	vmPerFileName    = "vm-per-file"
 	ipPerFileName    = "ip-per-file"
 	stPerFileName    = "storage-per-file"
+	gpuPerFileName   = "gpu-per-file"
 
 	logPathName = "log-path"
 	debugName   = "debug"
 )
 
 var allFlags = []string{ipName, portName, tlsName, certFileName, keyFileName, outDirName, templatesDirName,
-	vmPerFileName, ipPerFileName, stPerFileName, logPathName, debugName}
+	vmPerFileName, ipPerFileName, stPerFileName, gpuPerFileName, logPathName, debugName}
 
 // CLI option values
 var (
@@ -42,6 +43,7 @@ var (
 	vmPerFile    = flag.Uint64(vmPerFileName, 500, "number of VMs per template file")
 	ipPerFile    = flag.Uint64(ipPerFileName, 500, "number of IPs per json file")
 	stPerFile    = flag.Uint64(stPerFileName, 500, "number of storages per xml file")
+	gpuPerFile   = flag.Uint64(gpuPerFileName, 500, "number of gpus per json file")
 
 	logPath = flag.String(logPathName, "", "log path")
 	debug   = flag.Bool(debugName, false, "True for debug mode, false otherwise")
@@ -89,7 +91,7 @@ func main() {
 	logFlags(allFlags)
 
 	err = service.Serve(fmt.Sprintf("%s:%d", *ip, *port), *tls, *certFile, *keyFile, *outDir, *templatesDir,
-		*vmPerFile, *ipPerFile, *stPerFile)
+		*vmPerFile, *ipPerFile, *stPerFile, *gpuPerFile)
 	if err != nil {
 		logrus.WithField("error", err).Fatal("fatal error run goat")
 	}

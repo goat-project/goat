@@ -56,6 +56,18 @@ func WrapStorages(storages goat_grpc.AccountingService_ProcessStoragesServer) Re
 	}
 }
 
+// WrapGPUs wraps gRPC stream of GPU records in a RecordStream
+func WrapGPUs(gpus goat_grpc.AccountingService_ProcessGPUsServer) RecordStream {
+	return grpcStreamWrapper{
+		recv: func() (identifiable, error) {
+			return gpus.Recv()
+		},
+		close: func() error {
+			return gpus.SendAndClose(&emptyMessage)
+		},
+	}
+}
+
 type identifiable interface {
 	GetIdentifier() string
 }
@@ -71,7 +83,7 @@ func (gsw grpcStreamWrapper) ReceiveIdentifier() (string, error) {
 		return "", err
 	}
 
-	identifier := received.(identifiable).GetIdentifier()
+	identifier := received.GetIdentifier()
 	if identifier == "" {
 		return "", errFirstClientIdentifier
 	}
@@ -108,6 +120,13 @@ func (gsw grpcStreamWrapper) Receive() (wrapper.RecordWrapper, error) {
 		}
 
 		return wrapper.WrapStorage(*std), nil
+	case *goat_grpc.GPUData:
+		std := data.GetGpu()
+		if std == nil {
+			return nil, errNonFirstClientIdentifier
+		}
+
+		return wrapper.WrapGPU(*std), nil
 	default:
 		return nil, errUnknownMessageType
 	}
